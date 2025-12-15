@@ -21,7 +21,7 @@ let products = [
       "category": "إلكترونيات",
       "price": 250,
       "oldPrice": 300,
-      "image": "images/headphones.png",
+      "image": "headphones.png",
       "description": "سماعة رأس عالية الجودة مع إلغاء الضوضاء النشط، بطارية تدوم 30 ساعة.",
       "inStock": true,
       "featured": true
@@ -32,7 +32,7 @@ let products = [
       "category": "إلكترونيات",
       "price": 1200,
       "oldPrice": 1400,
-      "image": "images/phone.png",
+      "image": "phone.png",
       "description": "أحدث هاتف ذكي بكاميرا رباعية، شاشة 6.7 بوصة، ذاكرة 128 جيجابايت.",
       "inStock": true,
       "featured": true
@@ -43,7 +43,7 @@ let products = [
       "category": "إلكترونيات",
       "price": 180,
       "oldPrice": 220,
-      "image": "images/smartwatch.png",
+      "image": "smartwatch.png",
       "description": "ساعة ذكية تتبع اللياقة، معدل ضربات القلب، النوم، مقاومة للماء.",
       "inStock": true,
       "featured": false
@@ -54,7 +54,7 @@ let products = [
       "category": "إلكترونيات",
       "price": 90,
       "oldPrice": 120,
-      "image": "images/keyboard.png",
+      "image": "keyboard.png",
       "description": "لوحة مفاتيح ميكانيكية بإضاءة RGB، مفاتيح حمراء، توصيل USB.",
       "inStock": true,
       "featured": true
@@ -65,7 +65,7 @@ let products = [
       "category": "إكسسوارات",
       "price": 45,
       "oldPrice": 60,
-      "image": "images/mouse.png",
+      "image": "mouse.png",
       "description": "ماوس ألعاب بدقة 16000 نقطة في البوصة، 8 أزرار قابلة للبرمجة.",
       "inStock": true,
       "featured": false
@@ -76,7 +76,7 @@ let products = [
       "category": "إكسسوارات",
       "price": 35,
       "oldPrice": 50,
-      "image": "images/laptop-bag.png",
+      "image": "laptop-bag.png",
       "description": "حقيبة كمبيوتر محمول مقاومة للماء، جيوب متعددة، شاحن محمول.",
       "inStock": false,
       "featured": false
@@ -1035,4 +1035,5 @@ let products = [
       console.log('%cمرحباً في متجر تقني! 🔧', 'color: #2d5af1; font-size: 16px; font-weight: bold;');
       console.log('%cجميع الحقوق محفوظة © 2023 مجيب العباب', 'color: #666; font-style: italic;');
   });
+
   
