@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المتجر | مجيب العباب</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <!-- شريط التنقل العلوي -->
+    <nav class="admin-navbar">
+        <div class="admin-nav-container">
+            <div class="admin-logo">
+                <i class="fas fa-cogs"></i>
+                <span>لوحة تحكم المتجر</span>
+            </div>
+            <div class="admin-user">
+                <span class="user-name">مجيب العباب</span>
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- القائمة الجانبية -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-bars"></i> القائمة</h3>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active" data-tab="dashboard">
+                <a href="#">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>لوحة التحكم</span>
+                </a>
+            </li>
+            <li data-tab="products">
+                <a href="#">
+                    <i class="fas fa-box"></i>
+                    <span>إدارة المنتجات</span>
+                </a>
+            </li>
+            <li data-tab="orders">
+                <a href="#">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>الطلبات</span>
+                    <span class="badge new-orders">5</span>
+                </a>
+            </li>
+            <li data-tab="customers">
+                <a href="#">
+                    <i class="fas fa-users"></i>
+                    <span>العملاء</span>
+                </a>
+            </li>
+            <li data-tab="analytics">
+                <a href="#">
+                    <i class="fas fa-chart-line"></i>
+                    <span>الإحصائيات</span>
+                </a>
+            </li>
+            <li data-tab="settings">
+                <a href="#">
+                    <i class="fas fa-cog"></i>
+                    <span>الإعدادات</span>
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="btn-store">
+                <i class="fas fa-store"></i>
+                عرض المتجر
+            </a>
+            <button class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                تسجيل خروج
+            </button>
+        </div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="admin-content">
+        <!-- لوحة التحكم الرئيسية -->
+        <section class="dashboard-content tab-content active" id="dashboard">
+            <div class="content-header">
+                <h1><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+                <p>نظرة عامة على أداء المتجر</p>
+            </div>
+            
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #2d5af1;">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalOrders">0</h3>
+                        <p>الطلبات الكلية</p>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i> 12%
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #28a745;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalRevenue">0 ر.س</h3>
+                        <p>الإيرادات</p>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i> 8%
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #ff6b35;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalCustomers">0</h3>
+                        <p>العملاء</p>
+                    </div>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i> 5%
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #6f42c1;">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalProducts">0</h3>
+                        <p>المنتجات</p>
+                    </div>
+                    <div class="stat-trend down">
+                        <i class="fas fa-arrow-down"></i> 2%
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الطلبات الأخيرة -->
+            <div class="recent-orders">
+                <h2><i class="fas fa-clock"></i> الطلبات الأخيرة</h2>
+                <div class="table-container">
+                    <table id="recentOrdersTable">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersBody">
+                            <!-- سيتم ملؤها بـ JavaScript -->
+                            <tr>
+                                <td colspan="6" class="empty-table">لا توجد طلبات حالياً</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- إدارة المنتجات -->
+        <section class="products-content tab-content" id="products">
+            <div class="content-header">
+                <h1><i class="fas fa-box"></i> إدارة المنتجات</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="addProductBtn">
+                        <i class="fas fa-plus"></i> إضافة منتج جديد
+                    </button>
+                </div>
+            </div>
+            
+            <!-- فلتر المنتجات -->
+            <div class="products-filter">
+                <input type="text" id="productSearch" placeholder="ابحث عن منتج...">
+                <select id="categoryFilter">
+                    <option value="all">جميع الفئات</option>
+                    <option value="إلكترونيات">إلكترونيات</option>
+                    <option value="إكسسوارات">إكسسوارات</option>
+                </select>
+                <select id="statusFilter">
+                    <option value="all">جميع الحالات</option>
+                    <option value="available">متوفر</option>
+                    <option value="unavailable">غير متوفر</option>
+                </select>
+            </div>
+            
+            <!-- جدول المنتجات -->
+            <div class="table-container">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>الصورة</th>
+                            <th>اسم المنتج</th>
+                            <th>الفئة</th>
+                            <th>السعر</th>
+                            <th>المخزون</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <!-- سيتم ملؤها بـ JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- إدارة الطلبات -->
+        <section class="orders-content tab-content" id="orders">
+            <div class="content-header">
+                <h1><i class="fas fa-shopping-cart"></i> إدارة الطلبات</h1>
+                <div class="header-actions">
+                    <select id="orderStatusFilter">
+                        <option value="all">جميع الحالات</option>
+                        <option value="new">جديد</option>
+                        <option value="processing">قيد المعالجة</option>
+                        <option value="shipped">تم الشحن</option>
+                        <option value="delivered">تم التوصيل</option>
+                        <option value="cancelled">ملغي</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- جدول الطلبات -->
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>التاريخ</th>
+                            <th>المنتجات</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- سيتم ملؤها بـ JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- إدارة العملاء -->
+        <section class="customers-content tab-content" id="customers">
+            <div class="content-header">
+                <h1><i class="fas fa-users"></i> إدارة العملاء</h1>
+                <div class="header-actions">
+                    <input type="text" id="customerSearch" placeholder="ابحث عن عميل...">
+                </div>
+            </div>
+            
+            <!-- جدول العملاء -->
+            <div class="table-container">
+                <table id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الهاتف</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>عدد الطلبات</th>
+                            <th>إجمالي المشتريات</th>
+                            <th>تاريخ التسجيل</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <!-- سيتم ملؤها بـ JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- الإحصائيات -->
+        <section class="analytics-content tab-content" id="analytics">
+            <div class="content-header">
+                <h1><i class="fas fa-chart-line"></i> الإحصائيات</h1>
+                <div class="header-actions">
+                    <select id="analyticsPeriod">
+                        <option value="7days">آخر 7 أيام</option>
+                        <option value="30days">آخر 30 يوم</option>
+                        <option value="90days">آخر 90 يوم</option>
+                        <option value="year">هذه السنة</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- مخططات الإحصائيات -->
+            <div class="analytics-charts">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> الطلبات اليومية</h3>
+                    <canvas id="ordersChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-pie"></i> توزيع المبيعات حسب الفئة</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- أفضل المنتجات -->
+            <div class="top-products">
+                <h3><i class="fas fa-trophy"></i> أفضل 5 منتجات مبيعاً</h3>
+                <div class="top-products-list" id="topProductsList">
+                    <!-- سيتم ملؤها بـ JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- الإعدادات -->
+        <section class="settings-content tab-content" id="settings">
+            <div class="content-header">
+                <h1><i class="fas fa-cog"></i> إعدادات المتجر</h1>
+            </div>
+            
+            <!-- إعدادات عامة -->
+            <div class="settings-section">
+                <h3><i class="fas fa-store"></i> معلومات المتجر</h3>
+                <form id="storeSettingsForm">
+                    <div class="form-group">
+                        <label for="storeName">اسم المتجر</label>
+                        <input type="text" id="storeName" value="متجر تقني">
+                    </div>
+                    <div class="form-group">
+                        <label for="storeEmail">البريد الإلكتروني</label>
+                        <input type="email" id="storeEmail" value="mjyblwan0@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="storePhone">رقم الهاتف</label>
+                        <input type="tel" id="storePhone" value="781238648">
+                    </div>
+                    <div class="form-group">
+                        <label for="storeAddress">العنوان</label>
+                        <textarea id="storeAddress" rows="3">المملكة العربية السعودية</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </form>
+            </div>
+            
+            <!-- أكواد الخصم -->
+            <div class="settings-section">
+                <h3><i class="fas fa-tags"></i> أكواد الخصم</h3>
+                <div class="discount-codes">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الكود</th>
+                                <th>نسبة الخصم</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="discountCodesTable">
+                            <!-- سيتم ملؤها بـ JavaScript -->
+                        </tbody>
+                    </table>
+                    <button class="btn btn-secondary" id="addDiscountCode">
+                        <i class="fas fa-plus"></i> إضافة كود خصم
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- نافذة إضافة/تعديل منتج -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="productModalTitle">إضافة منتج جديد</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productName">اسم المنتج *</label>
+                            <input type="text" id="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productCategory">الفئة *</label>
+                            <select id="productCategory" required>
+                                <option value="">اختر الفئة</option>
+                                <option value="إلكترونيات">إلكترونيات</option>
+                                <option value="إكسسوارات">إكسسوارات</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productPrice">السعر (ر.س) *</label>
+                            <input type="number" id="productPrice" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productOldPrice">السعر القديم (ر.س)</label>
+                            <input type="number" id="productOldPrice" min="0" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productDescription">الوصف *</label>
+                        <textarea id="productDescription" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productImage">رابط الصورة</label>
+                            <input type="text" id="productImage" placeholder="images/product.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="productStock">المخزون *</label>
+                            <select id="productStock" required>
+                                <option value="true">متوفر</option>
+                                <option value="false">غير متوفر</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="productFeatured">
+                            <span>منتج مميز</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">إلغاء</button>
+                <button class="btn btn-primary" id="saveProductBtn">حفظ المنتج</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض تفاصيل الطلب -->
+    <div class="modal-overlay" id="orderDetailsModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 id="orderDetailsTitle">تفاصيل الطلب #</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="orderDetailsContent">
+                    <!-- سيتم ملؤها بـ JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">إغلاق</button>
+                <button class="btn btn-primary" id="updateOrderStatusBtn">تحديث الحالة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ربط ملفات JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="admin-script.js"></script>
+</body>
+</html>

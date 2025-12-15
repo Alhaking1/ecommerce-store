@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر تقني | مجيب العباب</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* أنماط إضافية للنوافذ المنبثقة */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 4000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal {
+            background-color: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dark-mode .modal {
+            background-color: #1e1e1e;
+            color: #eee;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 2px solid #2d5af1;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .dark-mode .modal-footer {
+            border-top-color: #333;
+        }
+        
+        /* تحسين للنصوص */
+        .order-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-right: 4px solid #2d5af1;
+        }
+        
+        .dark-mode .order-summary {
+            background-color: #2a2a2a;
+        }
+        
+        .order-summary p {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .order-summary strong {
+            color: #2d5af1;
+        }
+        
+        .dark-mode .order-summary strong {
+            color: #5d8aff;
+        }
+        
+        /* أنماط إضافية */
+        .featured-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #ff6b35;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            z-index: 2;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .sync-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-right: 4px solid #2d5af1;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        .dark-mode .sync-notification {
+            background: #1e1e1e;
+            color: #eee;
+            border-right-color: #5d8aff;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .admin-link {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-link {
+                bottom: 70px;
+                left: 10px;
+            }
+            
+            .sync-notification {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">🛒 <span>متجري</span> التقني</a>
+            <ul class="nav-menu">
+                <li><a href="#"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="#products"><i class="fas fa-box"></i> المنتجات</a></li>
+                <li><a href="#"><i class="fas fa-info-circle"></i> من نحن</a></li>
+                <li><a href="#"><i class="fas fa-phone"></i> اتصل بنا</a></li>
+            </ul>
+            <div class="nav-icons">
+                <button class="cart-icon" id="cartToggle">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- الهيرو / قسم الترحيب -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>أفضل الأجهزة التقنية بأسعار منافسة</h1>
+            <p>اكتشف أحدث المنتجات الإلكترونية والإكسسوارات مع خصومات تصل إلى 30%</p>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                <a href="#products" class="btn">تسوق الآن <i class="fas fa-arrow-left"></i></a>
+                <a href="admin.html" class="btn" target="_blank" style="background-color: #6f42c1;">
+                    <i class="fas fa-cogs"></i> لوحة التحكم
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- القسم الرئيسي للمنتجات -->
+    <main class="container">
+        <section class="products-section" id="products">
+            <h2><i class="fas fa-star"></i> منتجاتنا المميزة</h2>
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">الكل</button>
+                <button class="filter-btn" data-filter="إلكترونيات">إلكترونيات</button>
+                <button class="filter-btn" data-filter="إكسسوارات">إكسسوارات</button>
+                <button class="filter-btn" data-filter="featured">مميز</button>
+            </div>
+            
+            <!-- حاوية المنتجات (سيتم ملؤها بـ JavaScript) -->
+            <div class="products-grid" id="productsContainer">
+                <!-- المنتجات ستظهر هنا تلقائياً -->
+                <div class="loading">جاري تحميل المنتجات...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- سلة التسوق الجانبية -->
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-cart"></i> سلة التسوق</h3>
+            <button class="close-cart" id="closeCart">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- عناصر السلة ستظهر هنا -->
+            <p class="empty-cart-msg">سلة التسوق فارغة</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>المجموع:</span>
+                <span id="cartTotalPrice">0.00</span> ر.س
+            </div>
+            <div class="cart-discount">
+                <input type="text" id="discountCode" placeholder="كود الخصم">
+                <button id="applyDiscount">تطبيق</button>
+            </div>
+            <div class="cart-actions">
+                <button class="btn" id="checkoutBtn">إتمام الشراء</button>
+                <button class="btn btn-secondary" id="clearCart">تفريغ السلة</button>
+            </div>
+        </div>
+    </aside>
+    <div class="cart-overlay" id="cartOverlay"></div>
+
+    <!-- التذييل -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>عن المتجر</h4>
+                <p>متجر متخصص في بيع الأجهزة التقنية والإلكترونيات بجودة عالية وأسعار مناسبة.</p>
+            </div>
+            <div class="footer-section">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="#">الرئيسية</a></li>
+                    <li><a href="#products">المنتجات</a></li>
+                    <li><a href="#">سياسة الاستبدال</a></li>
+                    <li><a href="admin.html" target="_blank">لوحة التحكم</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>اتصل بنا</h4>
+                <p>
+                    <i class="fas fa-envelope"></i> 
+                    <a href="mailto:mjyblwan0@gmail.com?subject=استفسار عن منتج من المتجر&body=مرحبًا، أود الاستفسار عن:" class="contact-link">
+                        mjyblwan0@gmail.com
+                    </a>
+                </p>
+                <p>
+                    <i class="fab fa-whatsapp"></i>
+                    <a href="https://wa.me/966781238648?text=مرحبًا، أود الاستفسار عن منتج في متجركم" 
+                       target="_blank" 
+                       class="contact-link whatsapp-link">
+                        781238648
+                    </a>
+                </p>
+                <p style="margin-top: 15px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                    <i class="fas fa-info-circle"></i> اضغط للدردشة المباشرة
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2023 متجر تقني. تم التطوير بواسطة <strong>مجيب العباب</strong></p>
+            <p>
+                <a href="https://alhaking1.github.io/my-portfolio" target="_blank">معرض أعمالي</a> | 
+                <a href="https://github.com/Alhaking1" target="_blank">GitHub</a> |
+                <a href="admin.html" target="_blank">لوحة التحكم</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- زر تحديث المنتجات -->
+    <button class="btn btn-secondary admin-link" id="refreshProductsBtn" style="display: none;">
+        <i class="fas fa-sync-alt"></i> تحديث المنتجات
+    </button>
+
+    <!-- إشعار التحديث -->
+    <div class="sync-notification" id="syncNotification" style="display: none;">
+        <p>⚠️ تم تحديث المنتجات في لوحة التحكم</p>
+        <button class="btn btn-sm" onclick="refreshProductsFromAdmin()">
+            <i class="fas fa-sync-alt"></i> تحديث الآن
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="hideSyncNotification()">
+            <i class="fas fa-times"></i> إغلاق
+        </button>
+    </div>
+
+    <!-- ربط ملف JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

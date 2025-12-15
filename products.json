@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "سماعة رأس لاسلكية",
+    "category": "إلكترونيات",
+    "price": 250,
+    "oldPrice": 300,
+    "image": "images/headphones.png",
+    "description": "سماعة رأس عالية الجودة مع إلغاء الضوضاء النشط، بطارية تدوم 30 ساعة.",
+    "inStock": true,
+    "featured": true
+  },
+  {
+    "id": 2,
+    "name": "هاتف ذكي",
+    "category": "إلكترونيات",
+    "price": 1200,
+    "oldPrice": 1400,
+    "image": "images/phone.png",
+    "description": "أحدث هاتف ذكي بكاميرا رباعية، شاشة 6.7 بوصة، ذاكرة 128 جيجابايت.",
+    "inStock": true,
+    "featured": true
+  },
+  {
+    "id": 3,
+    "name": "ساعة ذكية",
+    "category": "إلكترونيات",
+    "price": 180,
+    "oldPrice": 220,
+    "image": "images/smartwatch.png",
+    "description": "ساعة ذكية تتبع اللياقة، معدل ضربات القلب، النوم، مقاومة للماء.",
+    "inStock": true,
+    "featured": false
+  },
+  {
+    "id": 4,
+    "name": "لوحة مفاتيح ميكانيكية",
+    "category": "إلكترونيات",
+    "price": 90,
+    "oldPrice": 120,
+    "image": "images/keyboard.png",
+    "description": "لوحة مفاتيح ميكانيكية بإضاءة RGB، مفاتيح حمراء، توصيل USB.",
+    "inStock": true,
+    "featured": true
+  },
+  {
+    "id": 5,
+    "name": "ماوس ألعاب",
+    "category": "إكسسوارات",
+    "price": 45,
+    "oldPrice": 60,
+    "image": "images/mouse.png",
+    "description": "ماوس ألعاب بدقة 16000 نقطة في البوصة، 8 أزرار قابلة للبرمجة.",
+    "inStock": true,
+    "featured": false
+  },
+  {
+    "id": 6,
+    "name": "حقيبة كمبيوتر محمول",
+    "category": "إكسسوارات",
+    "price": 35,
+    "oldPrice": 50,
+    "image": "images/laptop-bag.png",
+    "description": "حقيبة كمبيوتر محمول مقاومة للماء، جيوب متعددة، شاحن محمول.",
+    "inStock": false,
+    "featured": false
+  }
+]
