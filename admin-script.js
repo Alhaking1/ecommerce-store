@@ -884,6 +884,65 @@ adminStyle.textContent = `
 `;
 
 document.head.appendChild(adminStyle);
+// ==================== حماية لوحة التحكم ====================
+console.log(`
+🛡️ لوحة تحكم محمية بحقوق النشر
+👨‍💻 المطور: مجيب العباب
+📧 التواصل: mjyblwan0@gmail.com
+📱 واتساب: 781238648
+© 2023 جميع الحقوق محفوظة
+==============================================
+`);
+
+// منع الوصول غير المصرح به
+function protectAdminPanel() {
+    const currentDomain = window.location.hostname;
+    const allowedDomains = ['localhost', '127.0.0.1', 'alhaking1.github.io', 'github.io'];
+    
+    if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
+        console.error('🚫 محاولة وصول غير مصرح به للوحة التحكم من:', currentDomain);
+        
+        // عرض تحذير
+        const warningHTML = `
+            <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                color: white;
+                z-index: 999999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 20px;
+                font-family: 'Cairo', sans-serif;
+            ">
+                <div>
+                    <h1 style="color: #dc3545; font-size: 2rem; margin-bottom: 20px;">
+                        <i class="fas fa-ban"></i> وصول مرفوض
+                    </h1>
+                    <p style="font-size: 1.2rem; margin-bottom: 30px;">
+                        لوحة التحكم هذه محمية بحقوق النشر.<br>
+                        يمنع الوصول إليها من هذا النطاق.
+                    </p>
+                    <div style="background: rgba(255, 107, 53, 0.1); padding: 20px; border-radius: 10px;">
+                        <p><strong>👨‍💻 المطور:</strong> مجيب العباب</p>
+                        <p><strong>📧 التواصل:</strong> mjyblwan0@gmail.com</p>
+                        <p><strong>📱 واتساب:</strong> 781238648</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.innerHTML = warningHTML;
+    }
+}
+
+// استدعاء الحماية
+document.addEventListener('DOMContentLoaded', protectAdminPanel);
 
 /* ==================== تجاوب لوحة التحكم للهواتف ==================== */
 @media (max-width: 768px) {
@@ -990,3 +1049,4 @@ document.head.appendChild(adminStyle);
         justify-content: center;
     }
 }
+
