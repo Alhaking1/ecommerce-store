@@ -822,3 +822,108 @@ adminStyle.textContent = `
 
 document.head.appendChild(adminStyle);
 
+/* ==================== تجاوب لوحة التحكم للهواتف ==================== */
+@media (max-width: 768px) {
+    /* إصلاح القائمة الجانبية */
+    .admin-sidebar {
+        width: 100%;
+        right: -100%;
+        top: 70px;
+        height: calc(100vh - 70px);
+        transition: right 0.3s ease;
+    }
+    
+    .admin-sidebar.active {
+        right: 0;
+    }
+    
+    /* زر فتح/إغلاق القائمة */
+    .sidebar-toggle {
+        display: flex !important;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #2d5af1;
+        color: white;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        z-index: 2000;
+        box-shadow: 0 4px 12px rgba(45, 90, 241, 0.3);
+        border: none;
+        cursor: pointer;
+    }
+    
+    /* تعديل المحتوى الرئيسي */
+    .admin-content {
+        margin-right: 0;
+        padding: 20px 15px;
+        margin-top: 70px;
+        width: 100%;
+    }
+    
+    /* تعديل الجداول للهواتف */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px; /* يسمح بالتمرير الأفقي */
+    }
+    
+    /* تعديل بطاقات الإحصائيات */
+    .stats-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    /* تعديل النوافذ المنبثقة */
+    .modal {
+        width: 95%;
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    /* تعديل عناصر القائمة */
+    .sidebar-menu li a {
+        padding: 18px 20px;
+        font-size: 1.1rem;
+    }
+    
+    .sidebar-menu li a i {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* تعديلات إضافية للشاشات الصغيرة جداً */
+    .admin-nav-container {
+        padding: 0 10px;
+    }
+    
+    .user-name {
+        display: none; /* إخفاء الاسم على شاشات صغيرة */
+    }
+    
+    .admin-logo span {
+        font-size: 1.2rem;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
