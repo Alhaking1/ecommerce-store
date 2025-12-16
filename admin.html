@@ -33,123 +33,6 @@
     <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* ==================== تجاوب لوحة التحكم للهواتف ==================== */
-        /* زر القائمة للهواتف */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            background: #2d5af1;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(45, 90, 241, 0.3);
-            border: none;
-            cursor: pointer;
-        }
-        
-        .sidebar-toggle:hover {
-            background: #1a47c9;
-        }
-        
-        /* تعديلات للهواتف */
-        @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 280px;
-                right: -280px;
-                transition: right 0.3s ease;
-                z-index: 1999;
-            }
-            
-            .admin-sidebar.active {
-                right: 0;
-            }
-            
-            .admin-content {
-                margin-right: 0;
-                width: 100%;
-                padding: 20px 15px;
-            }
-            
-            .sidebar-toggle {
-                display: flex;
-            }
-            
-            /* إخفاء الاسم في الهواتف */
-            .user-name {
-                display: none;
-            }
-            
-            /* تحسين الجداول للهواتف */
-            .table-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            table {
-                min-width: 600px;
-            }
-            
-            /* تعديل بطاقات الإحصائيات */
-            .stats-cards {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            /* تعديل فلتر المنتجات */
-            .products-filter {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .products-filter input,
-            .products-filter select {
-                width: 100%;
-            }
-            
-            /* تعديل النوافذ المنبثقة */
-            .modal {
-                width: 95%;
-                max-width: 95%;
-                margin: 10px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .admin-nav-container {
-                padding: 0 10px;
-            }
-            
-            .admin-logo span {
-                font-size: 1.2rem;
-            }
-            
-            .content-header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .header-actions {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .action-buttons {
-                flex-wrap: nowrap;
-            }
-        }
-    </style>
 </head>
 <body class="admin-body">
     <!-- شاشة التحميل -->
@@ -314,7 +197,6 @@
                             </tr>
                         </thead>
                         <tbody id="recentOrdersBody">
-                            <!-- سيتم ملؤها بـ JavaScript -->
                             <tr>
                                 <td colspan="6" class="empty-table">لا توجد طلبات حالياً</td>
                             </tr>
@@ -531,7 +413,7 @@
     </main>
 
     <!-- نافذة إضافة/تعديل منتج -->
-    <div class="modal-overlay" id="productModal">
+    <div class="modal-overlay" id="productModal" style="display: none;">
         <div class="modal" style="max-width: 600px;">
             <div class="modal-header">
                 <h3 id="productModalTitle">إضافة منتج جديد</h3>
@@ -602,7 +484,7 @@
     </div>
 
     <!-- نافذة عرض تفاصيل الطلب -->
-    <div class="modal-overlay" id="orderDetailsModal">
+    <div class="modal-overlay" id="orderDetailsModal" style="display: none;">
         <div class="modal" style="max-width: 700px;">
             <div class="modal-header">
                 <h3 id="orderDetailsTitle">تفاصيل الطلب #</h3>
@@ -622,9 +504,8 @@
 
     <!-- ربط ملفات JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="admin-script.js"></script>
     <script>
-// كود تحميل وإدارة لوحة التحكم - إصدار موحد
+// ==================== نظام لوحة التحكم الكامل ====================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔄 بدء تحميل لوحة التحكم...');
     
@@ -656,63 +537,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // تفعيل نظام القوائم
         setupAdminTabs();
+        
+        // إضافة الأحداث للأزرار
+        setupEventListeners();
     }, 1500);
 });
+
+// ==================== دوال لوحة التحكم ====================
 
 // دالة تحميل وعرض البيانات
 function loadAdminData() {
     console.log('📊 جاري تحميل البيانات...');
     
     // 1. تحميل المنتجات من localStorage
-    const products = JSON.parse(localStorage.getItem('products')) || [];
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+    
+    // إذا لم توجد منتجات، استخدم المنتجات الافتراضية
+    if (products.length === 0) {
+        console.log('⚠️ لا توجد منتجات في localStorage، استخدام المنتجات الافتراضية');
+        products = getDefaultProducts();
+        localStorage.setItem('products', JSON.stringify(products));
+    }
+    
     console.log(`📦 عدد المنتجات: ${products.length}`);
     
     // عرض المنتجات في الجدول
-    const productsBody = document.getElementById('productsTableBody');
-    if (productsBody) {
-        if (products.length > 0) {
-            productsBody.innerHTML = products.map(product => `
-                <tr>
-                    <td>
-                        <img src="${product.image || 'images/default.png'}" 
-                             class="product-image" 
-                             alt="${product.name}"
-                             onerror="this.src='https://via.placeholder.com/50x50/2d5af1/FFFFFF?text=${product.name.substring(0, 5)}'">
-                    </td>
-                    <td><strong>${product.name}</strong></td>
-                    <td>${product.category}</td>
-                    <td>${product.price} ر.س</td>
-                    <td>${product.inStock ? 'نعم' : 'لا'}</td>
-                    <td>
-                        <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
-                            ${product.inStock ? 'متوفر' : 'غير متوفر'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            productsBody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="empty-table">
-                        <i class="fas fa-box-open"></i>
-                        لا توجد منتجات
-                    </td>
-                </tr>
-            `;
-        }
-    }
+    displayProducts(products);
     
     // 2. تحميل الطلبات من localStorage
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     console.log(`📦 عدد الطلبات: ${orders.length}`);
+    
+    // عرض الطلبات
+    displayOrders(orders);
     
     // 3. تحديث الإحصائيات
     updateAdminStats(products, orders);
@@ -720,17 +577,212 @@ function loadAdminData() {
     console.log('✅ تم تحميل جميع البيانات بنجاح');
 }
 
+// دالة الحصول على المنتجات الافتراضية
+function getDefaultProducts() {
+    return [
+        {
+            "id": 1,
+            "name": "سماعة رأس لاسلكية",
+            "category": "إلكترونيات",
+            "price": 250,
+            "oldPrice": 300,
+            "image": "images/headphones.png",
+            "description": "سماعة رأس عالية الجودة مع إلغاء الضوضاء النشط، بطارية تدوم 30 ساعة.",
+            "inStock": true,
+            "featured": true
+        },
+        {
+            "id": 2,
+            "name": "هاتف ذكي",
+            "category": "إلكترونيات",
+            "price": 1200,
+            "oldPrice": 1400,
+            "image": "images/phone.png",
+            "description": "أحدث هاتف ذكي بكاميرا رباعية، شاشة 6.7 بوصة، ذاكرة 128 جيجابايت.",
+            "inStock": true,
+            "featured": true
+        },
+        {
+            "id": 3,
+            "name": "ساعة ذكية",
+            "category": "إلكترونيات",
+            "price": 180,
+            "oldPrice": 220,
+            "image": "images/smartwatch.png",
+            "description": "ساعة ذكية تتبع اللياقة، معدل ضربات القلب، النوم، مقاومة للماء.",
+            "inStock": true,
+            "featured": false
+        },
+        {
+            "id": 4,
+            "name": "لوحة مفاتيح ميكانيكية",
+            "category": "إلكترونيات",
+            "price": 90,
+            "oldPrice": 120,
+            "image": "images/keyboard.png",
+            "description": "لوحة مفاتيح ميكانيكية بإضاءة RGB، مفاتيح حمراء، توصيل USB.",
+            "inStock": true,
+            "featured": true
+        },
+        {
+            "id": 5,
+            "name": "ماوس ألعاب",
+            "category": "إكسسوارات",
+            "price": 45,
+            "oldPrice": 60,
+            "image": "images/mouse.png",
+            "description": "ماوس ألعاب بدقة 16000 نقطة في البوصة، 8 أزرار قابلة للبرمجة.",
+            "inStock": true,
+            "featured": false
+        },
+        {
+            "id": 6,
+            "name": "حقيبة كمبيوتر محمول",
+            "category": "إكسسوارات",
+            "price": 35,
+            "oldPrice": 50,
+            "image": "images/laptop-bag.png",
+            "description": "حقيبة كمبيوتر محمول مقاومة للماء، جيوب متعددة، شاحن محمول.",
+            "inStock": false,
+            "featured": false
+        }
+    ];
+}
+
+// دالة عرض المنتجات في الجدول
+function displayProducts(products) {
+    const productsBody = document.getElementById('productsTableBody');
+    if (!productsBody) return;
+    
+    if (products.length === 0) {
+        productsBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-table">
+                    <i class="fas fa-box-open"></i>
+                    لا توجد منتجات
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    productsBody.innerHTML = products.map(product => `
+        <tr>
+            <td>
+                <img src="${product.image || 'images/default.png'}" 
+                     class="product-image" 
+                     alt="${product.name}"
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/50x50/2d5af1/FFFFFF?text=${product.name.substring(0, 5)}'">
+            </td>
+            <td><strong>${product.name}</strong></td>
+            <td>${product.category}</td>
+            <td>${product.price} ر.س</td>
+            <td>${product.inStock ? 'نعم' : 'لا'}</td>
+            <td>
+                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}" 
+                      style="padding: 5px 10px; border-radius: 5px; display: inline-block; color: white; font-size: 0.8rem; background-color: ${product.inStock ? '#28a745' : '#dc3545'}">
+                    ${product.inStock ? 'متوفر' : 'غير متوفر'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#28a745;color:white;cursor:pointer;margin:2px;">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#dc3545;color:white;margin:2px;cursor:pointer;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// دالة عرض الطلبات
+function displayOrders(orders) {
+    const ordersBody = document.getElementById('ordersTableBody');
+    const recentOrdersBody = document.getElementById('recentOrdersBody');
+    
+    if (!ordersBody || !recentOrdersBody) return;
+    
+    if (orders.length === 0) {
+        ordersBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-table">
+                    <i class="fas fa-shopping-cart"></i>
+                    لا توجد طلبات
+                </td>
+            </tr>
+        `;
+        
+        recentOrdersBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-table">
+                    <i class="fas fa-clock"></i>
+                    لا توجد طلبات أخيرة
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // عرض الطلبات الكاملة
+    ordersBody.innerHTML = orders.map(order => `
+        <tr>
+            <td>#${order.id.toString().slice(-6)}</td>
+            <td>${order.customer?.name || 'غير معروف'}</td>
+            <td>${order.date || 'غير معروف'}</td>
+            <td>${order.cart?.length || 0} منتج</td>
+            <td>${order.total ? order.total.toFixed(2) : '0.00'} ر.س</td>
+            <td>
+                <span class="status-badge status-${order.status || 'new'}" 
+                      style="padding: 5px 10px; border-radius: 5px; display: inline-block; color: white; font-size: 0.8rem; background-color: #2d5af1">
+                    ${order.status || 'جديد'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#2d5af1;color:white;cursor:pointer;margin:2px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    
+    // عرض الطلبات الأخيرة (آخر 5 طلبات)
+    const recentOrders = orders.slice(-5).reverse();
+    recentOrdersBody.innerHTML = recentOrders.map(order => `
+        <tr>
+            <td>#${order.id.toString().slice(-6)}</td>
+            <td>${order.customer?.name || 'غير معروف'}</td>
+            <td>${order.date || 'غير معروف'}</td>
+            <td>${order.total ? order.total.toFixed(2) : '0.00'} ر.س</td>
+            <td>
+                <span class="status-badge" style="padding: 5px 10px; border-radius: 5px; display: inline-block; color: white; font-size: 0.8rem; background-color: #2d5af1">
+                    ${order.status || 'جديد'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#2d5af1;color:white;cursor:pointer;margin:2px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
 // دالة تحديث الإحصائيات
 function updateAdminStats(products, orders) {
     // تحديث عدد المنتجات
-    document.getElementById('totalProducts').textContent = products.length;
+    const totalProductsEl = document.getElementById('totalProducts');
+    if (totalProductsEl) totalProductsEl.textContent = products.length;
     
     // تحديث عدد الطلبات
-    document.getElementById('totalOrders').textContent = orders.length;
+    const totalOrdersEl = document.getElementById('totalOrders');
+    if (totalOrdersEl) totalOrdersEl.textContent = orders.length;
     
     // تحديث الإيرادات
     const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-    document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2) + ' ر.س';
+    const totalRevenueEl = document.getElementById('totalRevenue');
+    if (totalRevenueEl) totalRevenueEl.textContent = totalRevenue.toFixed(2) + ' ر.س';
     
     // تحديث عدد العملاء
     const customersMap = new Map();
@@ -739,7 +791,8 @@ function updateAdminStats(products, orders) {
             customersMap.set(order.customer.phone, order.customer);
         }
     });
-    document.getElementById('totalCustomers').textContent = customersMap.size;
+    const totalCustomersEl = document.getElementById('totalCustomers');
+    if (totalCustomersEl) totalCustomersEl.textContent = customersMap.size;
     
     console.log(`💰 الإيرادات: ${totalRevenue} ر.س`);
     console.log(`👥 العملاء: ${customersMap.size}`);
@@ -785,7 +838,30 @@ function setupAdminTabs() {
 // دوال إدارة المنتجات
 function editAdminProduct(id) {
     console.log('✏️ تعديل المنتج:', id);
-    alert(`سيتم تعديل المنتج رقم ${id}\nهذه الوظيفة تحتاج إلى تنفيذ في admin-script.js`);
+    
+    // تحميل المنتجات
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+    const product = products.find(p => p.id == id);
+    
+    if (!product) {
+        alert('المنتج غير موجود');
+        return;
+    }
+    
+    // ملء النموذج بقيم المنتج
+    document.getElementById('productId').value = product.id;
+    document.getElementById('productName').value = product.name;
+    document.getElementById('productCategory').value = product.category;
+    document.getElementById('productPrice').value = product.price;
+    document.getElementById('productOldPrice').value = product.oldPrice || '';
+    document.getElementById('productDescription').value = product.description;
+    document.getElementById('productImage').value = product.image || '';
+    document.getElementById('productStock').value = product.inStock.toString();
+    document.getElementById('productFeatured').checked = product.featured || false;
+    document.getElementById('productModalTitle').textContent = 'تعديل المنتج';
+    
+    // إظهار النافذة
+    document.getElementById('productModal').style.display = 'flex';
 }
 
 function deleteAdminProduct(id) {
@@ -804,15 +880,180 @@ function deleteAdminProduct(id) {
     }
 }
 
-// تهيئة زر القائمة للهواتف
-const sidebarToggle = document.getElementById('sidebarToggle');
-if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', function() {
-        const sidebar = document.querySelector('.admin-sidebar');
-        if (sidebar) {
-            sidebar.classList.toggle('active');
-        }
+// دالة عرض تفاصيل الطلب
+function viewOrderDetails(id) {
+    console.log('👁️ عرض تفاصيل الطلب:', id);
+    
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const order = orders.find(o => o.id == id);
+    
+    if (!order) {
+        alert('الطلب غير موجود');
+        return;
+    }
+    
+    // عرض تفاصيل الطلب
+    document.getElementById('orderDetailsTitle').textContent = `تفاصيل الطلب #${order.id.toString().slice(-6)}`;
+    
+    const orderDetailsContent = document.getElementById('orderDetailsContent');
+    orderDetailsContent.innerHTML = `
+        <div class="order-summary">
+            <p><strong>رقم الطلب:</strong> #${order.id.toString().slice(-6)}</p>
+            <p><strong>العميل:</strong> ${order.customer?.name || 'غير معروف'}</p>
+            <p><strong>الهاتف:</strong> ${order.customer?.phone || 'غير معروف'}</p>
+            <p><strong>البريد الإلكتروني:</strong> ${order.customer?.email || 'غير معروف'}</p>
+            <p><strong>العنوان:</strong> ${order.customer?.address || 'غير معروف'}</p>
+            <p><strong>التاريخ:</strong> ${order.date || 'غير معروف'}</p>
+            <p><strong>الحالة:</strong> ${order.status || 'جديد'}</p>
+            <p><strong>الإجمالي:</strong> ${order.total ? order.total.toFixed(2) : '0.00'} ر.س</p>
+        </div>
+        
+        <h4>المنتجات:</h4>
+        <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background-color: #f8f9fa;">
+                    <th style="padding: 10px; text-align: right;">المنتج</th>
+                    <th style="padding: 10px; text-align: right;">السعر</th>
+                    <th style="padding: 10px; text-align: right;">الكمية</th>
+                    <th style="padding: 10px; text-align: right;">المجموع</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${(order.cart || []).map(item => `
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.price} ر.س</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.quantity || 1}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">${(item.price * (item.quantity || 1)).toFixed(2)} ر.س</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    // إظهار النافذة
+    document.getElementById('orderDetailsModal').style.display = 'flex';
+}
+
+// دالة إعداد مستمعي الأحداث
+function setupEventListeners() {
+    // زر إغلاق النوافذ
+    document.querySelectorAll('.close-modal').forEach(button => {
+        button.addEventListener('click', function() {
+            document.getElementById('productModal').style.display = 'none';
+            document.getElementById('orderDetailsModal').style.display = 'none';
+        });
     });
+    
+    // زر إضافة منتج جديد
+    const addProductBtn = document.getElementById('addProductBtn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', function() {
+            document.getElementById('productForm').reset();
+            document.getElementById('productModalTitle').textContent = 'إضافة منتج جديد';
+            document.getElementById('productId').value = '';
+            document.getElementById('productModal').style.display = 'flex';
+        });
+    }
+    
+    // زر حفظ المنتج
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    if (saveProductBtn) {
+        saveProductBtn.addEventListener('click', saveProduct);
+    }
+    
+    // زر تسجيل الخروج
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                sessionStorage.removeItem('admin_logged_in');
+                window.location.href = 'login.html';
+            }
+        });
+    }
+    
+    // زر القائمة للهواتف
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.admin-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+        });
+    }
+    
+    // زر التحديث للطلبات
+    const updateOrderBtn = document.getElementById('updateOrderStatusBtn');
+    if (updateOrderBtn) {
+        updateOrderBtn.addEventListener('click', function() {
+            alert('سيتم تنفيذ تحديث حالة الطلب في الإصدار القادم');
+        });
+    }
+}
+
+// دالة حفظ المنتج
+function saveProduct() {
+    const id = document.getElementById('productId').value;
+    const name = document.getElementById('productName').value;
+    const category = document.getElementById('productCategory').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const oldPrice = document.getElementById('productOldPrice').value ? parseFloat(document.getElementById('productOldPrice').value) : null;
+    const description = document.getElementById('productDescription').value;
+    const image = document.getElementById('productImage').value || 'images/default.png';
+    const inStock = document.getElementById('productStock').value === 'true';
+    const featured = document.getElementById('productFeatured').checked;
+    
+    // التحقق من البيانات
+    if (!name || !category || !price || !description) {
+        alert('الرجاء تعبئة جميع الحقول المطلوبة');
+        return;
+    }
+    
+    // تحميل المنتجات الحالية
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+    
+    if (id) {
+        // تحديث منتج موجود
+        const index = products.findIndex(p => p.id == id);
+        if (index !== -1) {
+            products[index] = {
+                ...products[index],
+                name,
+                category,
+                price,
+                oldPrice,
+                description,
+                image,
+                inStock,
+                featured
+            };
+        }
+    } else {
+        // إضافة منتج جديد
+        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+        products.push({
+            id: newId,
+            name,
+            category,
+            price,
+            oldPrice,
+            description,
+            image,
+            inStock,
+            featured
+        });
+    }
+    
+    // حفظ في localStorage
+    localStorage.setItem('products', JSON.stringify(products));
+    
+    // إغلاق النافذة وإعادة التحميل
+    document.getElementById('productModal').style.display = 'none';
+    loadAdminData();
+    
+    alert(id ? '✅ تم تحديث المنتج بنجاح' : '✅ تم إضافة المنتج بنجاح');
 }
     </script>
 </body>
