@@ -1,7 +1,5 @@
 // ==================== نظام لوحة التحكم الكامل ====================
 console.log('🛡️ لوحة تحكم المتجر - مجيب العباب');
-console.log('📧 التواصل: mjyblwan0@gmail.com');
-console.log('📱 واتساب: 781238648');
 
 // متغيرات عامة
 let adminProducts = [];
@@ -21,21 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('✅ مسجل دخول بنجاح');
     
-    // إخفاء شاشة التحميل
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = 'none';
-        console.log('✅ تم إخفاء شاشة التحميل');
-    }
-    
-    // تحميل البيانات
-    loadAllAdminData();
-    
-    // إعداد الأحداث
-    setupAdminEvents();
-    
-    // تفعيل التبويب الأول
-    activateTab('dashboard');
+    // إخفاء شاشة التحميل بعد ثانيتين
+    setTimeout(function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+            console.log('✅ تم إخفاء شاشة التحميل');
+        }
+        
+        // تحميل البيانات
+        loadAllAdminData();
+        
+        // إعداد الأحداث
+        setupAdminEvents();
+        
+        // تفعيل التبويب الأول
+        activateTab('dashboard');
+    }, 2000);
 });
 
 // ==================== دوال تحميل البيانات ====================
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadAllAdminData() {
     console.log('📊 جاري تحميل جميع البيانات...');
     
-    // 1. تحميل المنتجات
+    // 1. تحميل المنتجات (بدون مسح البيانات الموجودة)
     loadAdminProducts();
     
     // 2. تحميل الطلبات
@@ -62,22 +62,44 @@ function loadAllAdminData() {
 }
 
 /**
- * تحميل المنتجات
+ * تحميل المنتجات - يحافظ على البيانات الحالية
  */
 function loadAdminProducts() {
     console.log('📦 جاري تحميل المنتجات...');
     
-    // محاولة تحميل من localStorage
-    adminProducts = JSON.parse(localStorage.getItem('products')) || [];
+    // 1. أولاً: تحميل من localStorage
+    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+    console.log(`📦 المنتجات في localStorage: ${storedProducts.length}`);
     
-    // إذا لم توجد منتجات، استخدم المنتجات الافتراضية
-    if (adminProducts.length === 0) {
-        console.log('⚠️ لا توجد منتجات في localStorage، استخدام الافتراضية');
-        adminProducts = getDefaultProducts();
-        localStorage.setItem('products', JSON.stringify(adminProducts));
+    // 2. إذا كانت هناك منتجات في localStorage، استخدمها
+    if (storedProducts.length > 0) {
+        adminProducts = storedProducts;
+        console.log(`✅ تم استخدام ${adminProducts.length} منتج من localStorage`);
+    } else {
+        // 3. فقط إذا لم يكن هناك منتجات في localStorage، استخدم المنتجات الافتراضية
+        console.log('⚠️ لا توجد منتجات في localStorage، جلب المنتجات من script.js');
+        
+        try {
+            // محاولة الحصول على المنتجات من script.js (إذا كان متاحاً)
+            if (typeof window.products !== 'undefined' && window.products.length > 0) {
+                adminProducts = window.products;
+                console.log(`✅ تم تحميل ${adminProducts.length} منتج من script.js`);
+            } else {
+                // استخدام المنتجات الافتراضية كحل أخير
+                console.log('⚠️ لا يمكن الوصول إلى script.js، استخدام المنتجات الافتراضية');
+                adminProducts = getDefaultProducts();
+            }
+            
+            // حفظ المنتجات في localStorage
+            localStorage.setItem('products', JSON.stringify(adminProducts));
+            console.log(`💾 تم حفظ ${adminProducts.length} منتج في localStorage`);
+            
+        } catch (error) {
+            console.error('❌ خطأ في تحميل المنتجات:', error);
+            adminProducts = getDefaultProducts();
+            localStorage.setItem('products', JSON.stringify(adminProducts));
+        }
     }
-    
-    console.log(`📦 تم تحميل ${adminProducts.length} منتج`);
     
     // عرض المنتجات
     displayAdminProducts();
@@ -193,15 +215,16 @@ function displayAdminProducts() {
             <td>${product.price} ر.س</td>
             <td>${product.inStock ? 'نعم' : 'لا'}</td>
             <td>
-                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
+                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}" 
+                      style="padding: 5px 10px; border-radius: 5px; display: inline-block; color: white; font-size: 0.8rem; background-color: ${product.inStock ? '#28a745' : '#dc3545'}">
                     ${product.inStock ? 'متوفر' : 'غير متوفر'}
                 </span>
             </td>
             <td>
-                <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})">
+                <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#28a745;color:white;cursor:pointer;margin:2px;">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})">
+                <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#dc3545;color:white;margin:2px;cursor:pointer;">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -252,15 +275,16 @@ function displayAdminOrders() {
             <td>${order.cart?.length || 0} منتج</td>
             <td>${order.total ? order.total.toFixed(2) : '0.00'} ر.س</td>
             <td>
-                <span class="status-badge status-${order.status || 'new'}">
+                <span class="status-badge status-${order.status || 'new'}" 
+                      style="padding: 5px 10px; border-radius: 5px; display: inline-block; color: white; font-size: 0.8rem; background-color: #2d5af1">
                     ${order.status || 'جديد'}
                 </span>
             </td>
             <td>
-                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})">
+                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#2d5af1;color:white;cursor:pointer;margin:2px;">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn-action btn-edit" onclick="editOrderStatus(${order.id})">
+                <button class="btn-action btn-edit" onclick="editOrderStatus(${order.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#ffc107;color:white;margin:2px;cursor:pointer;">
                     <i class="fas fa-edit"></i>
                 </button>
             </td>
@@ -297,12 +321,12 @@ function displayRecentOrders() {
             <td>${order.date || 'غير معروف'}</td>
             <td>${order.total ? order.total.toFixed(2) : '0.00'} ر.س</td>
             <td>
-                <span class="status-badge">
+                <span class="status-badge" style="padding: 5px 10px; border-radius: 5px; display: inline-block; color: white; font-size: 0.8rem; background-color: #2d5af1">
                     ${order.status || 'جديد'}
                 </span>
             </td>
             <td>
-                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})">
+                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})" style="width:35px;height:35px;border-radius:50%;border:none;background:#2d5af1;color:white;cursor:pointer;margin:2px;">
                     <i class="fas fa-eye"></i>
                 </button>
             </td>
@@ -323,7 +347,8 @@ function loadAdminCustomers() {
             customersMap.set(order.customer.phone, {
                 ...order.customer,
                 orders: (customersMap.get(order.customer.phone)?.orders || 0) + 1,
-                totalSpent: (customersMap.get(order.customer.phone)?.totalSpent || 0) + (order.total || 0)
+                totalSpent: (customersMap.get(order.customer.phone)?.totalSpent || 0) + (order.total || 0),
+                date: order.date || 'غير معروف'
             });
         }
     });
@@ -363,7 +388,7 @@ function displayAdminCustomers() {
             <td>${customer.totalSpent ? customer.totalSpent.toFixed(2) : '0.00'} ر.س</td>
             <td>${customer.date || 'غير معروف'}</td>
             <td>
-                <button class="btn-action btn-view" onclick="viewCustomerDetails('${customer.phone}')">
+                <button class="btn-action btn-view" onclick="viewCustomerDetails('${customer.phone}')" style="width:35px;height:35px;border-radius:50%;border:none;background:#2d5af1;color:white;cursor:pointer;margin:2px;">
                     <i class="fas fa-eye"></i>
                 </button>
             </td>
@@ -418,13 +443,13 @@ function editAdminProduct(id) {
     document.getElementById('productPrice').value = product.price;
     document.getElementById('productOldPrice').value = product.oldPrice || '';
     document.getElementById('productDescription').value = product.description;
-    document.getElementById('productImage').value = product.image;
+    document.getElementById('productImage').value = product.image || '';
     document.getElementById('productStock').value = product.inStock.toString();
-    document.getElementById('productFeatured').checked = product.featured;
+    document.getElementById('productFeatured').checked = product.featured || false;
     document.getElementById('productModalTitle').textContent = 'تعديل المنتج';
     
     // إظهار النافذة
-    showModal('productModal');
+    document.getElementById('productModal').style.display = 'flex';
 }
 
 /**
@@ -460,7 +485,7 @@ function addNewProduct() {
     document.getElementById('productModalTitle').textContent = 'إضافة منتج جديد';
     
     // إظهار النافذة
-    showModal('productModal');
+    document.getElementById('productModal').style.display = 'flex';
 }
 
 /**
@@ -521,7 +546,7 @@ function saveProduct() {
     localStorage.setItem('products', JSON.stringify(adminProducts));
     
     // إغلاق النافذة
-    hideModal('productModal');
+    document.getElementById('productModal').style.display = 'none';
     
     // تحديث العرض
     displayAdminProducts();
@@ -563,18 +588,24 @@ function viewOrderDetails(id) {
         </div>
         
         <h4>المنتجات:</h4>
-        <div class="order-products">
+        <div class="order-products" style="margin-top: 20px;">
             ${(order.cart || []).map(item => `
-                <div class="order-product-item">
-                    <div>${item.name}</div>
-                    <div>${item.quantity || 1} × ${item.price} ر.س = ${((item.quantity || 1) * item.price).toFixed(2)} ر.س</div>
+                <div style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        <small>${item.description || ''}</small>
+                    </div>
+                    <div style="text-align: left;">
+                        ${item.quantity || 1} × ${item.price} ر.س<br>
+                        <strong>${((item.quantity || 1) * item.price).toFixed(2)} ر.س</strong>
+                    </div>
                 </div>
             `).join('')}
         </div>
     `;
     
     // إظهار النافذة
-    showModal('orderDetailsModal');
+    document.getElementById('orderDetailsModal').style.display = 'flex';
 }
 
 /**
@@ -653,26 +684,6 @@ function activateTab(tabId) {
     }
     
     console.log(`🎯 تم تفعيل التبويب: ${tabId}`);
-}
-
-/**
- * إظهار نافذة
- */
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-}
-
-/**
- * إخفاء نافذة
- */
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-    }
 }
 
 /**
