@@ -852,3 +852,117 @@ tbody tr:hover {
         height: 45px;
     }
 }
+/* ==================== إضافات للتجاوب ==================== */
+
+/* تحسين الشاشات الصغيرة جداً */
+@media (max-width: 480px) {
+    .admin-nav-container {
+        padding: 0 10px;
+    }
+    
+    .admin-logo span {
+        font-size: 1.2rem;
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .action-buttons {
+        flex-wrap: nowrap;
+    }
+}
+
+/* تحسين الجداول للشاشات الصغيرة */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px;
+    }
+    
+    .modal {
+        width: 95%;
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .stats-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .products-filter {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .products-filter input,
+    .products-filter select {
+        width: 100%;
+    }
+}
+
+/* تحسين النوافذ المنبثقة للهواتف */
+@media (max-width: 480px) {
+    .modal-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+/* تحسين الأزرار في الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .btn-action {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+/* تحسين العناصر في حالة التحميل */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* رسالة النقرات */
+.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.clickable:hover {
+    transform: scale(1.02);
+}
+
+/* إضافة تأثير للبطاقات */
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
