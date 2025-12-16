@@ -1,11 +1,42 @@
+/*
+==============================================
+لوحة تحكم المتجر - مجيب العباب
+نسخة مصححة - بدون أخطاء
+==============================================
+*/
+
+// ==================== المتغيرات العامة ====================
+let currentProducts = JSON.parse(localStorage.getItem('products')) || [];
+let currentOrders = JSON.parse(localStorage.getItem('orders')) || [];
+let storeSettings = JSON.parse(localStorage.getItem('store_settings')) || {
+    storeName: "متجر تقني",
+    storeEmail: "mjyblwan0@gmail.com",
+    storePhone: "781238648",
+    storeAddress: "المملكة العربية السعودية"
+};
+
+let discountCodes = JSON.parse(localStorage.getItem('discount_codes')) || {
+    'TECH10': { discount: 10, active: true },
+    'WELCOME20': { discount: 20, active: true },
+    'SAVE30': { discount: 30, active: false }
+};
+
+// بيانات الدخول
+let adminCredentials = JSON.parse(localStorage.getItem('admin_credentials')) || {
+    username: 'admin',
+    password: 'Admin@1234',
+    lastChanged: new Date().toISOString()
+};
 
 // ==================== 🔐 التحقق من تسجيل الدخول ====================
 (function checkLogin() {
+    console.log('🔐 التحقق من تسجيل الدخول...');
+    
     const isLoggedIn = sessionStorage.getItem('admin_logged_in');
     const loginTime = sessionStorage.getItem('login_time');
     
     if (!isLoggedIn || !loginTime) {
-        console.log('❌ لم يتم تسجيل الدخول - التوجيه إلى صفحة الدخول');
+        console.log('❌ لم يتم تسجيل الدخول');
         window.location.href = 'login.html';
         return;
     }
@@ -26,283 +57,9 @@
     console.log('✅ مستخدم مسجل الدخول');
 })();
 
-// ==================== إدارة المستخدمين ====================
-function openChangePasswordModal() {
-    const modalHTML = `
-        <div class="modal-overlay active" id="changePasswordModal">
-            <div class="modal" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="passwordError" class="error-message" style="display: none; margin-bottom: 15px;"></div>
-                    
-                    <form id="changePasswordForm">
-                        <div class="form-group">
-                            <label for="currentPassword">كلمة المرور الحالية *</label>
-                            <input type="password" id="currentPassword" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="newPassword">كلمة المرور الجديدة *</label>
-                            <input type="password" id="newPassword" required>
-                            <small style="display: block; margin-top: 5px; color: #666;">
-                                يجب أن تحتوي على 8 أحرف على الأقل، حرف كبير، رقم ورمز خاص
-                            </small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="confirmPassword">تأكيد كلمة المرور الجديدة *</label>
-                            <input type="password" id="confirmPassword" required>
-                        </div>
-                        
-                        <div class="password-strength" style="margin-top: 15px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                <span>قوة كلمة المرور:</span>
-                                <span id="passwordStrengthText" style="font-weight: 600;">ضعيفة</span>
-                            </div>
-                            <div style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
-                                <div id="passwordStrengthBar" style="height: 100%; width: 10%; background: #dc3545; transition: all 0.3s ease;"></div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary close-modal">إلغاء</button>
-                    <button class="btn btn-primary" id="savePasswordBtn">حفظ التغييرات</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    setupPasswordModalEvents();
-}
-
-function setupPasswordModalEvents() {
-    // التحقق من قوة كلمة المرور
-    document.getElementById('newPassword').addEventListener('input', function() {
-        checkPasswordStrength(this.value);
-    });
-    
-    // حفظ كلمة المرور
-    document.getElementById('savePasswordBtn').addEventListener('click', function() {
-        changeAdminPassword();
-    });
-    
-    // إغلاق النافذة
-    document.querySelectorAll('#changePasswordModal .close-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.getElementById('changePasswordModal').remove();
-        });
-    });
-}
-
-function checkPasswordStrength(password) {
-    let strength = 0;
-    const text = document.getElementById('passwordStrengthText');
-    const bar = document.getElementById('passwordStrengthBar');
-    
-    // قواعد التحقق
-    if (password.length >= 8) strength += 25;
-    if (/[A-Z]/.test(password)) strength += 25;
-    if (/[0-9]/.test(password)) strength += 25;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-    
-    // تحديث المؤشر
-    bar.style.width = strength + '%';
-    
-    if (strength < 50) {
-        bar.style.background = '#dc3545';
-        text.textContent = 'ضعيفة';
-        text.style.color = '#dc3545';
-    } else if (strength < 75) {
-        bar.style.background = '#ffc107';
-        text.textContent = 'متوسطة';
-        text.style.color = '#ffc107';
-    } else {
-        bar.style.background = '#28a745';
-        text.textContent = 'قوية';
-        text.style.color = '#28a745';
-    }
-}
-
-function changeAdminPassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const errorDiv = document.getElementById('passwordError');
-    
-    // إخفاء رسالة الخطأ
-    errorDiv.style.display = 'none';
-    
-    // التحقق من صحة كلمة المرور الحالية
-    if (currentPassword !== adminCredentials.password) {
-        errorDiv.textContent = 'كلمة المرور الحالية غير صحيحة';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    // التحقق من تطابق كلمتي المرور الجديدتين
-    if (newPassword !== confirmPassword) {
-        errorDiv.textContent = 'كلمة المرور الجديدة غير متطابقة';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    // التحقق من قوة كلمة المرور الجديدة
-    if (newPassword.length < 8) {
-        errorDiv.textContent = 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    if (!/[A-Z]/.test(newPassword)) {
-        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على حرف كبير على الأقل';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    if (!/[0-9]/.test(newPassword)) {
-        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على رقم على الأقل';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    if (!/[^A-Za-z0-9]/.test(newPassword)) {
-        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على رمز خاص على الأقل (!@#$%^&*)';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    // حفظ كلمة المرور الجديدة
-    adminCredentials.password = newPassword;
-    adminCredentials.lastChanged = new Date().toISOString();
-    localStorage.setItem('admin_credentials', JSON.stringify(adminCredentials));
-    
-    // إغلاق النافذة وإظهار رسالة النجاح
-    document.getElementById('changePasswordModal').remove();
-    showAdminNotification('تم تغيير كلمة المرور بنجاح', 'success');
-    
-    // تسجيل الخروج وإعادة التوجيه
-    setTimeout(() => {
-        sessionStorage.removeItem('admin_logged_in');
-        sessionStorage.removeItem('login_time');
-        showAdminNotification('الرجاء تسجيل الدخول مرة أخرى بكلمة المرور الجديدة', 'info');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 2000);
-    }, 3000);
-}
-
-// ==================== إضافة زر تغيير كلمة المرور ====================
-function addChangePasswordButton() {
-    // إضافة زر في شريط المستخدم
-    const userSection = document.querySelector('.admin-user');
-    if (userSection) {
-        const changePasswordBtn = document.createElement('button');
-        changePasswordBtn.className = 'btn-change-password';
-        changePasswordBtn.innerHTML = '<i class="fas fa-key"></i>';
-        changePasswordBtn.title = 'تغيير كلمة المرور';
-        changePasswordBtn.style.cssText = `
-            background: none;
-            border: none;
-            color: #2d5af1;
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-right: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        `;
-        
-        changePasswordBtn.addEventListener('mouseenter', function() {
-            this.style.background = '#f0f7ff';
-        });
-        
-        changePasswordBtn.addEventListener('mouseleave', function() {
-            this.style.background = 'none';
-        });
-        
-        changePasswordBtn.addEventListener('click', openChangePasswordModal);
-        
-        userSection.insertBefore(changePasswordBtn, userSection.firstChild);
-    }
-    
-    // إضافة عنصر في القائمة الجانبية
-    const sidebarMenu = document.querySelector('.sidebar-menu');
-    if (sidebarMenu) {
-        const menuItem = document.createElement('li');
-        menuItem.innerHTML = `
-            <a href="#" onclick="openChangePasswordModal(); return false;">
-                <i class="fas fa-key"></i>
-                <span>تغيير كلمة المرور</span>
-            </a>
-        `;
-        menuItem.style.borderTop = '1px solid #eee';
-        menuItem.style.marginTop = '10px';
-        menuItem.style.paddingTop = '10px';
-        
-        sidebarMenu.appendChild(menuItem);
-    }
-}
-
-// ==================== تسجيل الخروج ====================
-function logoutAdmin() {
-    if (confirm('هل تريد تسجيل الخروج من لوحة التحكم؟')) {
-        sessionStorage.removeItem('admin_logged_in');
-        sessionStorage.removeItem('login_time');
-        window.location.href = 'login.html';
-    }
-}
-
-// تحديث حدث تسجيل الخروج في setupEventListeners
-function setupEventListeners() {
-    // ... الكود الحالي ...
-    
-    // تحديث حدث تسجيل الخروج
-    const logoutBtn = document.querySelector('.btn-logout');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logoutAdmin);
-    }
-    
-    // إضافة زر تغيير كلمة المرور
-    setTimeout(addChangePasswordButton, 1000);
-}
-/*
-==============================================
-لوحة تحكم المتجر - مجيب العباب
-نسخة مصححة - جميع الأزرار تعمل
-==============================================
-*/
-
-// ==================== المتغيرات العامة ====================
-let currentProducts = JSON.parse(localStorage.getItem('products')) || [];
-let currentOrders = JSON.parse(localStorage.getItem('orders')) || [];
-let storeSettings = JSON.parse(localStorage.getItem('store_settings')) || {
-    storeName: "متجر تقني",
-    storeEmail: "mjyblwan0@gmail.com",
-    storePhone: "781238648",
-    storeAddress: "المملكة العربية السعودية"
-};
-
-let discountCodes = JSON.parse(localStorage.getItem('discount_codes')) || {
-    'TECH10': { discount: 10, active: true },
-    'WELCOME20': { discount: 20, active: true },
-    'SAVE30': { discount: 30, active: false }
-};
-
 // ==================== تهيئة لوحة التحكم ====================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 لوحة تحكم المتجر - جاهزة للعمل');
-    
-    // 🔥 **الإصلاح الأول: تفعيل التبويبات عند التحميل**
-    setupTabNavigation();
     
     // تحميل البيانات
     loadProductsTable();
@@ -314,7 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // تحديث الإحصائيات
     updateStatistics();
     loadRecentOrders();
-    loadTopProducts();
     
     // تحديث عداد الطلبات
     updateOrdersBadge();
@@ -322,77 +78,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // إعداد الأحداث
     setupEventListeners();
     setupMobileSidebar();
+    addChangePasswordButton();
     
-    // 🔥 **الإضافة: تفعيل لوحة التحكم عند التحميل**
+    // تحميل المخططات (بعد التأكد من تحميل DOM)
     setTimeout(() => {
-        activateTab('dashboard');
-    }, 100);
+        loadCharts();
+        loadTopProducts();
+    }, 500);
+    
+    // تفعيل التبويب الأول
+    activateTab('dashboard');
+    
+    console.log('✅ تم تحميل لوحة التحكم بنجاح');
 });
 
-// ==================== 🔥 **الإصلاح: إدارة التبويبات** ====================
-function setupTabNavigation() {
-    console.log('🔧 إعداد التبويبات...');
-    
-    const menuItems = document.querySelectorAll('.sidebar-menu li');
-    menuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // إزالة النشاط من الكل
-            menuItems.forEach(li => li.classList.remove('active'));
-            
-            // إضافة النشاط للعنصر الحالي
-            this.classList.add('active');
-            
-            // إخفاء جميع المحتويات
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // إظهار المحتوى المحدد
-            const tabId = this.getAttribute('data-tab');
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active');
-                console.log(`✅ تم تفعيل تبويب: ${tabId}`);
-                
-                // تحديث بيانات التبويب
-                refreshTabData(tabId);
-            }
-        });
-    });
-    
-    console.log('✅ تم إعداد التبويبات');
-}
-
-function refreshTabData(tabId) {
-    switch(tabId) {
-        case 'dashboard':
-            updateStatistics();
-            loadRecentOrders();
-            break;
-        case 'products':
-            loadProductsTable();
-            break;
-        case 'orders':
-            loadOrdersTable();
-            break;
-        case 'customers':
-            loadCustomersTable();
-            break;
-        case 'analytics':
-            loadCharts();
-            loadTopProducts();
-            break;
-        case 'settings':
-            loadStoreSettings();
-            loadDiscountCodes();
-            break;
-    }
-}
-
-// ==================== 🔥 **الإصلاح: تفعيل التبويب** ====================
+// ==================== إدارة التبويبات ====================
 function activateTab(tabId) {
     console.log(`🎯 تفعيل التبويب: ${tabId}`);
     
@@ -416,18 +116,13 @@ function activateTab(tabId) {
     const targetTab = document.getElementById(tabId);
     if (targetTab) {
         targetTab.classList.add('active');
-        refreshTabData(tabId);
     }
 }
 
 // ==================== إدارة المنتجات ====================
 function loadProductsTable() {
     const tbody = document.getElementById('productsTableBody');
-    
-    if (!tbody) {
-        console.error('❌ لا يوجد عنصر productsTableBody');
-        return;
-    }
+    if (!tbody) return;
     
     if (currentProducts.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="empty-table">لا توجد منتجات حالياً</td></tr>`;
@@ -438,7 +133,7 @@ function loadProductsTable() {
         <tr>
             <td>
                 <img src="${product.image || 'default.png'}" alt="${product.name}" class="product-image"
-                     onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=${encodeURIComponent(product.name.substring(0, 5))}'">
+                     onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=PROD'">
             </td>
             <td><strong>${product.name}</strong></td>
             <td>${product.category}</td>
@@ -461,8 +156,6 @@ function loadProductsTable() {
             </td>
         </tr>
     `).join('');
-    
-    console.log('✅ تم تحميل جدول المنتجات');
 }
 
 function addNewProduct() {
@@ -508,34 +201,26 @@ function saveProduct() {
         featured: document.getElementById('productFeatured').checked
     };
     
-    // التحقق من البيانات
     if (!productData.name || !productData.category || !productData.price || !productData.description) {
         showAdminNotification('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
         return;
     }
     
     if (productId) {
-        // تحديث المنتج
         const index = currentProducts.findIndex(p => p.id == productId);
         if (index !== -1) {
             currentProducts[index] = productData;
             showAdminNotification('تم تحديث المنتج بنجاح');
         }
     } else {
-        // إضافة منتج جديد
         currentProducts.push(productData);
         showAdminNotification('تم إضافة المنتج بنجاح');
     }
     
-    // حفظ في localStorage
     localStorage.setItem('products', JSON.stringify(currentProducts));
-    
-    // تحديث العرض
     loadProductsTable();
     updateStatistics();
-    updateAllStoreWindows();
     
-    // إغلاق النافذة
     document.getElementById('productModal').classList.remove('active');
 }
 
@@ -547,19 +232,13 @@ function deleteProduct(productId) {
     
     loadProductsTable();
     updateStatistics();
-    updateAllStoreWindows();
-    
     showAdminNotification('تم حذف المنتج بنجاح');
 }
 
 // ==================== إدارة الطلبات ====================
 function loadOrdersTable() {
     const tbody = document.getElementById('ordersTableBody');
-    
-    if (!tbody) {
-        console.error('❌ لا يوجد عنصر ordersTableBody');
-        return;
-    }
+    if (!tbody) return;
     
     const statusFilter = document.getElementById('orderStatusFilter')?.value || 'all';
     let filteredOrders = currentOrders;
@@ -593,8 +272,6 @@ function loadOrdersTable() {
             </td>
         </tr>
     `).join('');
-    
-    console.log('✅ تم تحميل جدول الطلبات');
 }
 
 function loadRecentOrders() {
@@ -654,7 +331,7 @@ function viewOrderDetails(orderId) {
                 ${order.cart?.map(item => `
                     <div class="order-product-item">
                         <img src="${item.image || 'images/default.png'}" alt="${item.name}" class="order-product-img"
-                             onerror="this.src='https://via.placeholder.com/60x60/e0e0e0/666666?text=${encodeURIComponent(item.name?.substring(0, 5) || 'منتج')}'">
+                             onerror="this.src='https://via.placeholder.com/60x60/e0e0e0/666666?text=PROD'">
                         <div class="order-product-info">
                             <h5>${item.name || 'منتج'}</h5>
                             <p>الكمية: ${item.quantity || 1} × ${item.price || 0} ر.س</p>
@@ -693,21 +370,10 @@ function editOrderStatus(orderId) {
     const order = currentOrders.find(o => o.id == orderId);
     if (!order) return;
     
-    const statuses = [
-        { value: 'new', label: 'جديد' },
-        { value: 'processing', label: 'قيد المعالجة' },
-        { value: 'shipped', label: 'تم الشحن' },
-        { value: 'delivered', label: 'تم التوصيل' },
-        { value: 'cancelled', label: 'ملغي' }
-    ];
+    const statuses = ['جديد', 'قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'ملغي'];
+    const newStatus = prompt(`تغيير حالة الطلب #${order.id.toString().slice(-6)}\n\n${statuses.join('\n')}\n\nأدخل الحالة الجديدة:`, order.status);
     
-    const statusList = statuses.map(s => `${s.value} - ${s.label}`).join('\n');
-    const newStatus = prompt(
-        `تغيير حالة الطلب #${order.id.toString().slice(-6)}\n\n${statusList}\n\nأدخل الحالة الجديدة:`,
-        order.status
-    );
-    
-    if (newStatus && statuses.find(s => s.value === newStatus)) {
+    if (newStatus && newStatus !== order.status && ['new', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
         order.status = newStatus;
         localStorage.setItem('orders', JSON.stringify(currentOrders));
         
@@ -877,16 +543,11 @@ function loadCharts() {
     // مخطط الطلبات
     const ordersCtx = document.getElementById('ordersChart');
     if (ordersCtx) {
-        ordersCtx.getContext('2d');
-        // سيتم إضافة Chart.js لاحقاً
-        ordersCtx.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">مخطط الطلبات سيعمل هنا</div>';
-    }
-    
-    // مخطط المبيعات
-    const salesCtx = document.getElementById('salesChart');
-    if (salesCtx) {
-        salesCtx.getContext('2d');
-        salesCtx.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">مخطط المبيعات سيعمل هنا</div>';
+        try {
+            ordersCtx.getContext('2d');
+        } catch (e) {
+            // تجاهل الخطأ
+        }
     }
 }
 
@@ -950,12 +611,6 @@ function updateOrdersBadge() {
 }
 
 function showAdminNotification(message, type = 'success') {
-    // إنشاء عنصر الإشعار
-    const notification = document.createElement('div');
-    notification.className = 'admin-notification';
-    notification.textContent = message;
-    
-    // إضافة الأنماط
     const colors = {
         success: '#28a745',
         error: '#dc3545',
@@ -963,6 +618,9 @@ function showAdminNotification(message, type = 'success') {
         info: '#17a2b8'
     };
     
+    const notification = document.createElement('div');
+    notification.className = 'admin-notification';
+    notification.textContent = message;
     notification.style.cssText = `
         position: fixed;
         top: 20px;
@@ -978,26 +636,252 @@ function showAdminNotification(message, type = 'success') {
         direction: rtl;
     `;
     
-    // إضافة للإشعار
     document.body.appendChild(notification);
     
-    // إزالة الإشعار بعد 3 ثواني
     setTimeout(() => {
         notification.style.animation = 'slideOutLeft 0.3s ease';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
-// ==================== تحديث المتجر ====================
-function updateAllStoreWindows() {
-    console.log('🔄 تحديث المنتجات...');
-    localStorage.setItem('products', JSON.stringify(currentProducts));
+// ==================== نظام تغيير كلمة المرور ====================
+function addChangePasswordButton() {
+    console.log('🔧 إضافة زر تغيير كلمة المرور...');
     
-    // إرسال حدث لتحديث النوافذ الأخرى
-    window.dispatchEvent(new StorageEvent('storage', {
-        key: 'products',
-        newValue: JSON.stringify(currentProducts)
-    }));
+    // 1. في شريط المستخدم
+    const userSection = document.querySelector('.admin-user');
+    if (userSection) {
+        const existingBtn = userSection.querySelector('.btn-change-password');
+        if (!existingBtn) {
+            const changePasswordBtn = document.createElement('button');
+            changePasswordBtn.className = 'btn-change-password';
+            changePasswordBtn.innerHTML = '<i class="fas fa-key"></i>';
+            changePasswordBtn.title = 'تغيير كلمة المرور';
+            changePasswordBtn.style.cssText = `
+                background: none;
+                border: none;
+                color: #2d5af1;
+                font-size: 1.2rem;
+                cursor: pointer;
+                margin-left: 10px;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            `;
+            
+            changePasswordBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openChangePasswordModal();
+            });
+            
+            userSection.insertBefore(changePasswordBtn, userSection.firstChild);
+        }
+    }
+    
+    // 2. في القائمة الجانبية
+    const sidebarMenu = document.querySelector('.sidebar-menu');
+    if (sidebarMenu && !sidebarMenu.querySelector('.change-password-item')) {
+        const menuItem = document.createElement('li');
+        menuItem.className = 'change-password-item';
+        menuItem.style.borderTop = '1px solid #eee';
+        menuItem.style.marginTop = '10px';
+        menuItem.style.paddingTop = '10px';
+        
+        menuItem.innerHTML = `
+            <a href="#" onclick="openChangePasswordModal(); return false;" style="color: #ff6b35;">
+                <i class="fas fa-key" style="color: #ff6b35;"></i>
+                <span>تغيير كلمة المرور</span>
+            </a>
+        `;
+        
+        sidebarMenu.appendChild(menuItem);
+    }
+}
+
+function openChangePasswordModal() {
+    console.log('🔓 فتح نافذة تغيير كلمة المرور');
+    
+    // إزالة النافذة إذا كانت موجودة
+    const existingModal = document.getElementById('changePasswordModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const modalHTML = `
+        <div class="modal-overlay active" id="changePasswordModal">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="passwordError" class="error-message" style="display: none; margin-bottom: 15px;"></div>
+                    
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label for="currentPassword"><i class="fas fa-lock"></i> كلمة المرور الحالية *</label>
+                            <input type="password" id="currentPassword" placeholder="أدخل كلمة المرور الحالية" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newPassword"><i class="fas fa-lock"></i> كلمة المرور الجديدة *</label>
+                            <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة" required>
+                            <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                                يجب أن تحتوي على 8 أحرف على الأقل، حرف كبير، رقم ورمز خاص
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword"><i class="fas fa-lock"></i> تأكيد كلمة المرور الجديدة *</label>
+                            <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة" required>
+                        </div>
+                        
+                        <div class="password-strength" style="margin-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>قوة كلمة المرور:</span>
+                                <span id="passwordStrengthText" style="font-weight: 600;">ضعيفة</span>
+                            </div>
+                            <div style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
+                                <div id="passwordStrengthBar" style="height: 100%; width: 10%; background: #dc3545; transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary close-modal">إلغاء</button>
+                    <button class="btn btn-primary" id="savePasswordBtn">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // إعداد الأحداث
+    setupPasswordModalEvents();
+}
+
+function setupPasswordModalEvents() {
+    // التحقق من قوة كلمة المرور
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+    }
+    
+    // حفظ كلمة المرور
+    const savePasswordBtn = document.getElementById('savePasswordBtn');
+    if (savePasswordBtn) {
+        savePasswordBtn.addEventListener('click', changeAdminPassword);
+    }
+    
+    // إغلاق النافذة
+    document.querySelectorAll('#changePasswordModal .close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('changePasswordModal').remove();
+        });
+    });
+}
+
+function checkPasswordStrength(password) {
+    let strength = 0;
+    const text = document.getElementById('passwordStrengthText');
+    const bar = document.getElementById('passwordStrengthBar');
+    
+    if (!text || !bar) return;
+    
+    if (password.length >= 8) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+    
+    bar.style.width = strength + '%';
+    
+    if (strength < 50) {
+        bar.style.background = '#dc3545';
+        text.textContent = 'ضعيفة';
+        text.style.color = '#dc3545';
+    } else if (strength < 75) {
+        bar.style.background = '#ffc107';
+        text.textContent = 'متوسطة';
+        text.style.color = '#ffc107';
+    } else {
+        bar.style.background = '#28a745';
+        text.textContent = 'قوية';
+        text.style.color = '#28a745';
+    }
+}
+
+function changeAdminPassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('passwordError');
+    
+    if (!errorDiv) return;
+    
+    errorDiv.style.display = 'none';
+    
+    if (currentPassword !== adminCredentials.password) {
+        errorDiv.textContent = 'كلمة المرور الحالية غير صحيحة';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'كلمة المرور الجديدة غير متطابقة';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        errorDiv.textContent = 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!/[A-Z]/.test(newPassword)) {
+        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على حرف كبير على الأقل';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!/[0-9]/.test(newPassword)) {
+        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على رقم على الأقل';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على رمز خاص على الأقل (!@#$%^&*)';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    adminCredentials.password = newPassword;
+    adminCredentials.lastChanged = new Date().toISOString();
+    localStorage.setItem('admin_credentials', JSON.stringify(adminCredentials));
+    
+    document.getElementById('changePasswordModal').remove();
+    showAdminNotification('تم تغيير كلمة المرور بنجاح', 'success');
+    
+    setTimeout(() => {
+        logoutAdmin();
+    }, 2000);
+}
+
+function logoutAdmin() {
+    sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('login_time');
+    window.location.href = 'login.html';
 }
 
 // ==================== فلترة المنتجات ====================
@@ -1033,7 +917,7 @@ function filterProductsTable() {
         <tr>
             <td>
                 <img src="${product.image || 'default.png'}" alt="${product.name}" class="product-image"
-                     onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=${encodeURIComponent(product.name.substring(0, 5))}'">
+                     onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=PROD'">
             </td>
             <td><strong>${product.name}</strong></td>
             <td>${product.category}</td>
@@ -1062,7 +946,18 @@ function filterProductsTable() {
 function setupEventListeners() {
     console.log('🔧 إعداد الأحداث...');
     
-    // 1. أحداث المنتجات
+    // 1. أحداث التبويبات
+    document.querySelectorAll('.sidebar-menu li').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+            if (tabId) {
+                activateTab(tabId);
+            }
+        });
+    });
+    
+    // 2. أحداث المنتجات
     const addProductBtn = document.getElementById('addProductBtn');
     if (addProductBtn) {
         addProductBtn.addEventListener('click', addNewProduct);
@@ -1073,7 +968,7 @@ function setupEventListeners() {
         saveProductBtn.addEventListener('click', saveProduct);
     }
     
-    // 2. أحداث النوافذ المنبثقة
+    // 3. أحداث النوافذ المنبثقة
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.addEventListener('click', function() {
             const modal = this.closest('.modal-overlay');
@@ -1081,7 +976,7 @@ function setupEventListeners() {
         });
     });
     
-    // 3. أحداث الفلترة
+    // 4. أحداث الفلترة
     const orderStatusFilter = document.getElementById('orderStatusFilter');
     if (orderStatusFilter) {
         orderStatusFilter.addEventListener('change', loadOrdersTable);
@@ -1102,7 +997,7 @@ function setupEventListeners() {
         statusFilter.addEventListener('change', filterProductsTable);
     }
     
-    // 4. أحداث الإعدادات
+    // 5. أحداث الإعدادات
     const storeSettingsForm = document.getElementById('storeSettingsForm');
     if (storeSettingsForm) {
         storeSettingsForm.addEventListener('submit', saveStoreSettings);
@@ -1113,7 +1008,7 @@ function setupEventListeners() {
         addDiscountCodeBtn.addEventListener('click', addDiscountCode);
     }
     
-    // 5. أحداث الطلبات
+    // 6. أحداث الطلبات
     const updateOrderStatusBtn = document.getElementById('updateOrderStatusBtn');
     if (updateOrderStatusBtn) {
         updateOrderStatusBtn.addEventListener('click', function() {
@@ -1123,7 +1018,7 @@ function setupEventListeners() {
         });
     }
     
-    // 6. أحداث الروابط والأزرار
+    // 7. أحداث الروابط والأزرار
     const viewStoreBtn = document.querySelector('.btn-store');
     if (viewStoreBtn) {
         viewStoreBtn.addEventListener('click', function(e) {
@@ -1134,23 +1029,15 @@ function setupEventListeners() {
     
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            if (confirm('هل تريد تسجيل الخروج؟')) {
-                window.location.href = 'index.html';
-            }
-        });
+        logoutBtn.addEventListener('click', logoutAdmin);
     }
     
     // إغلاق النوافذ عند النقر خارجها
-    document.querySelectorAll('.modal-overlay').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
-        });
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('active');
+        }
     });
-    
-    console.log('✅ تم إعداد جميع الأحداث');
 }
 
 // ==================== القائمة الجانبية للهواتف ====================
@@ -1160,7 +1047,6 @@ function setupMobileSidebar() {
     
     if (!sidebarToggle || !sidebar) return;
     
-    // التحقق من حجم الشاشة
     function checkScreenSize() {
         if (window.innerWidth <= 768) {
             sidebarToggle.style.display = 'flex';
@@ -1171,11 +1057,9 @@ function setupMobileSidebar() {
         }
     }
     
-    // التحقق عند التحميل والتغيير
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     
-    // حدث فتح/إغلاق القائمة
     sidebarToggle.addEventListener('click', function(e) {
         e.stopPropagation();
         sidebar.classList.toggle('active');
@@ -1184,7 +1068,6 @@ function setupMobileSidebar() {
             : '<i class="fas fa-bars"></i>';
     });
     
-    // إغلاق القائمة عند النقر خارجها
     document.addEventListener('click', function(event) {
         if (window.innerWidth <= 768 && 
             sidebar.classList.contains('active') &&
@@ -1197,9 +1080,8 @@ function setupMobileSidebar() {
     });
 }
 
-// ==================== تحميل البيانات من localStorage ====================
-function loadSampleData() {
-    // بيانات تجريبية إذا لم توجد بيانات
+// ==================== تحميل بيانات تجريبية ====================
+(function loadSampleData() {
     if (currentProducts.length === 0) {
         currentProducts = [
             {
@@ -1249,16 +1131,13 @@ function loadSampleData() {
                     }
                 ],
                 total: 500,
-                date: "2023-12-20",
+                date: new Date().toISOString().split('T')[0],
                 status: "new"
             }
         ];
         localStorage.setItem('orders', JSON.stringify(currentOrders));
     }
-}
-
-// تحميل البيانات التجريبية عند التحميل
-loadSampleData();
+})();
 
 // ==================== معلومات المطور ====================
 console.log(`
@@ -1266,12 +1145,12 @@ console.log(`
 🛠️ لوحة تحكم المتجر - الإصدار المصحح
 👨‍💻 المطور: مجيب العباب
 📧 التواصل: mjyblwan0@gmail.com
-📱 واتساب: 781238648
-🌐 النسخة: 3.0.0 (مصححة بالكامل)
+📱 الواتساب: 781238648
+🌐 النسخة: 4.0.0 (مستقرة)
 ==============================================
 `);
 
-// إضافة أنيميشن
+// إضافة الأنيميشن
 const adminStyle = document.createElement('style');
 adminStyle.textContent = `
     @keyframes slideInLeft {
@@ -1282,303 +1161,5 @@ adminStyle.textContent = `
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(-100px); opacity: 0; }
     }
-    
-    /* أنيميشن للبطاقات */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .stat-card {
-        animation: fadeIn 0.5s ease forwards;
-    }
-    
-    .admin-notification {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        padding: 15px 25px;
-        border-radius: 8px;
-        color: white;
-        z-index: 3000;
-        animation: slideInLeft 0.3s ease;
-        font-family: 'Cairo', sans-serif;
-        direction: rtl;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-   // ==================== إضافة مؤشر الأمان ====================
-(function addSecurityIndicator() {
-    setTimeout(() => {
-        const securityIndicator = document.createElement('div');
-        securityIndicator.className = 'security-indicator';
-        securityIndicator.innerHTML = '<i class="fas fa-shield-alt"></i> لوحة التحكم آمنة';
-        document.body.appendChild(securityIndicator);
-        
-        setTimeout(() => {
-            securityIndicator.style.opacity = '0';
-            securityIndicator.style.transform = 'translateX(-20px)';
-            setTimeout(() => securityIndicator.remove(), 500);
-        }, 3000);
-    }, 2000);
-})(); }
 `;
-
 document.head.appendChild(adminStyle);
-
-// ==================== إضافة زر تغيير كلمة المرور ====================
-function addChangePasswordButton() {
-    console.log('🔧 إضافة زر تغيير كلمة المرور...');
-    
-    // 1. إضافة زر في شريط المستخدم العلوي
-    const userSection = document.querySelector('.admin-user');
-    if (userSection) {
-        const changePasswordBtn = document.createElement('button');
-        changePasswordBtn.className = 'btn-change-password';
-        changePasswordBtn.innerHTML = '<i class="fas fa-key"></i>';
-        changePasswordBtn.title = 'تغيير كلمة المرور';
-        changePasswordBtn.style.cssText = `
-            background: none;
-            border: none;
-            color: #2d5af1;
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-left: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        `;
-        
-        changePasswordBtn.addEventListener('mouseenter', function() {
-            this.style.background = '#f0f7ff';
-        });
-        
-        changePasswordBtn.addEventListener('mouseleave', function() {
-            this.style.background = 'none';
-        });
-        
-        changePasswordBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            openChangePasswordModal();
-        });
-        
-        // إضافة الزر بعد الاسم أو قبله
-        const userName = document.querySelector('.user-name');
-        if (userName) {
-            userSection.insertBefore(changePasswordBtn, userName.nextSibling);
-        } else {
-            userSection.insertBefore(changePasswordBtn, userSection.firstChild);
-        }
-        
-        console.log('✅ تم إضافة زر تغيير كلمة المرور في الشريط العلوي');
-    }
-    
-    // 2. إضافة عنصر في القائمة الجانبية
-    const sidebarMenu = document.querySelector('.sidebar-menu');
-    if (sidebarMenu) {
-        const menuItem = document.createElement('li');
-        menuItem.style.borderTop = '1px solid #eee';
-        menuItem.style.marginTop = '10px';
-        menuItem.style.paddingTop = '10px';
-        
-        menuItem.innerHTML = `
-            <a href="#" onclick="openChangePasswordModal(); return false;" style="color: #ff6b35;">
-                <i class="fas fa-key" style="color: #ff6b35;"></i>
-                <span>تغيير كلمة المرور</span>
-            </a>
-        `;
-        
-        // إضافة بعد كل العناصر
-        sidebarMenu.appendChild(menuItem);
-        
-        console.log('✅ تم إضافة زر تغيير كلمة المرور في القائمة الجانبية');
-    }
-    
-    // 3. إضافة في القائمة السفلية (خيار إضافي)
-    const sidebarFooter = document.querySelector('.sidebar-footer');
-    if (sidebarFooter) {
-        const changePasswordLink = document.createElement('button');
-        changePasswordLink.className = 'btn-change-password-footer';
-        changePasswordLink.innerHTML = '<i class="fas fa-key"></i> تغيير كلمة المرور';
-        changePasswordLink.style.cssText = `
-            width: 100%;
-            padding: 12px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            color: #ff6b35;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-        `;
-        
-        changePasswordLink.addEventListener('mouseenter', function() {
-            this.style.background = '#fff5f0';
-            this.style.borderColor = '#ff6b35';
-        });
-        
-        changePasswordLink.addEventListener('mouseleave', function() {
-            this.style.background = '#f8f9fa';
-            this.style.borderColor = '#ddd';
-        });
-        
-        changePasswordLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            openChangePasswordModal();
-        });
-        
-        // إضافته قبل زر تسجيل الخروج
-        const logoutBtn = document.querySelector('.btn-logout');
-        if (logoutBtn) {
-            sidebarFooter.insertBefore(changePasswordLink, logoutBtn);
-        } else {
-            sidebarFooter.appendChild(changePasswordLink);
-        }
-        
-        console.log('✅ تم إضافة زر تغيير كلمة المرور في الفوتر');
-    }
-}
-
-// ==================== دالة فتح نافذة تغيير كلمة المرور ====================
-function openChangePasswordModal() {
-    console.log('🔓 فتح نافذة تغيير كلمة المرور');
-    
-    const modalHTML = `
-        <div class="modal-overlay active" id="changePasswordModal">
-            <div class="modal" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="passwordError" class="error-message" style="display: none; margin-bottom: 15px;"></div>
-                    
-                    <form id="changePasswordForm">
-                        <div class="form-group">
-                            <label for="currentPassword"><i class="fas fa-lock"></i> كلمة المرور الحالية *</label>
-                            <input type="password" id="currentPassword" placeholder="أدخل كلمة المرور الحالية" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="newPassword"><i class="fas fa-lock"></i> كلمة المرور الجديدة *</label>
-                            <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة" required>
-                            <div class="password-hint">
-                                <small><i class="fas fa-info-circle"></i> يجب أن تحتوي على:</small>
-                                <ul style="margin: 5px 0 0 20px; font-size: 0.8rem;">
-                                    <li>8 أحرف على الأقل</li>
-                                    <li>حرف كبير واحد (A-Z)</li>
-                                    <li>رقم واحد على الأقل (0-9)</li>
-                                    <li>رمز خاص واحد (!@#$%^&*)</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="confirmPassword"><i class="fas fa-lock"></i> تأكيد كلمة المرور الجديدة *</label>
-                            <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة" required>
-                        </div>
-                        
-                        <div class="password-strength" style="margin-top: 15px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                <span>قوة كلمة المرور:</span>
-                                <span id="passwordStrengthText" style="font-weight: 600;">ضعيفة</span>
-                            </div>
-                            <div style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
-                                <div id="passwordStrengthBar" style="height: 100%; width: 10%; background: #dc3545; transition: all 0.3s ease;"></div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary close-modal">إلغاء</button>
-                    <button class="btn btn-primary" id="savePasswordBtn">
-                        <i class="fas fa-save"></i> حفظ التغييرات
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // إزالة النافذة إذا كانت موجودة
-    const existingModal = document.getElementById('changePasswordModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    // إضافة النافذة الجديدة
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // إعداد الأحداث
-    setupPasswordModalEvents();
-    
-    // إظهار النافذة مع تأثير
-    const modal = document.getElementById('changePasswordModal');
-    modal.style.animation = 'modalSlideIn 0.3s ease';
-}
-
-// ==================== إعداد أحداث نافذة كلمة المرور ====================
-function setupPasswordModalEvents() {
-    console.log('⚙️ إعداد أحداث نافذة كلمة المرور');
-    
-    // 1. التحقق من قوة كلمة المرور
-    const newPasswordInput = document.getElementById('newPassword');
-    if (newPasswordInput) {
-        newPasswordInput.addEventListener('input', function() {
-            checkPasswordStrength(this.value);
-        });
-    }
-    
-    // 2. حفظ كلمة المرور
-    const savePasswordBtn = document.getElementById('savePasswordBtn');
-    if (savePasswordBtn) {
-        savePasswordBtn.addEventListener('click', function() {
-            changeAdminPassword();
-        });
-    }
-    
-    // 3. إغلاق النافذة
-    document.querySelectorAll('#changePasswordModal .close-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-            console.log('❌ إغلاق نافذة تغيير كلمة المرور');
-            document.getElementById('changePasswordModal').remove();
-        });
-    });
-    
-    // 4. إغلاق عند النقر خارج النافذة
-    const modalOverlay = document.querySelector('#changePasswordModal.modal-overlay');
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', function(e) {
-            if (e.target === this) {
-                console.log('❌ إغلاق نافذة تغيير كلمة المرور');
-                this.remove();
-            }
-        });
-    }
-    
-    // 5. إرسال النموذج عند الضغط على Enter
-    const form = document.getElementById('changePasswordForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            changeAdminPassword();
-        });
-    }
-}
-
-// ==================== استدعاء الدالة عند التحميل ====================
-document.addEventListener('DOMContentLoaded', function() {
-    // انتظر قليلاً لتحميل جميع العناصر
-    setTimeout(() => {
-        addChangePasswordButton();
-        console.log('✅ تم تحميل نظام تغيير كلمة المرور');
-    }, 1000);
-});
-
