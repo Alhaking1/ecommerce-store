@@ -1,3 +1,279 @@
+
+// ==================== 🔐 التحقق من تسجيل الدخول ====================
+(function checkLogin() {
+    const isLoggedIn = sessionStorage.getItem('admin_logged_in');
+    const loginTime = sessionStorage.getItem('login_time');
+    
+    if (!isLoggedIn || !loginTime) {
+        console.log('❌ لم يتم تسجيل الدخول - التوجيه إلى صفحة الدخول');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // التحقق من انتهاء الجلسة (4 ساعات)
+    const loginDate = new Date(loginTime);
+    const currentDate = new Date();
+    const sessionTimeout = 4 * 60 * 60 * 1000; // 4 ساعات
+    
+    if (currentDate - loginDate > sessionTimeout) {
+        console.log('⏰ انتهت مدة الجلسة');
+        sessionStorage.removeItem('admin_logged_in');
+        sessionStorage.removeItem('login_time');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    console.log('✅ مستخدم مسجل الدخول');
+})();
+
+// ==================== إدارة المستخدمين ====================
+function openChangePasswordModal() {
+    const modalHTML = `
+        <div class="modal-overlay active" id="changePasswordModal">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="passwordError" class="error-message" style="display: none; margin-bottom: 15px;"></div>
+                    
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">كلمة المرور الحالية *</label>
+                            <input type="password" id="currentPassword" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newPassword">كلمة المرور الجديدة *</label>
+                            <input type="password" id="newPassword" required>
+                            <small style="display: block; margin-top: 5px; color: #666;">
+                                يجب أن تحتوي على 8 أحرف على الأقل، حرف كبير، رقم ورمز خاص
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword">تأكيد كلمة المرور الجديدة *</label>
+                            <input type="password" id="confirmPassword" required>
+                        </div>
+                        
+                        <div class="password-strength" style="margin-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>قوة كلمة المرور:</span>
+                                <span id="passwordStrengthText" style="font-weight: 600;">ضعيفة</span>
+                            </div>
+                            <div style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
+                                <div id="passwordStrengthBar" style="height: 100%; width: 10%; background: #dc3545; transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary close-modal">إلغاء</button>
+                    <button class="btn btn-primary" id="savePasswordBtn">حفظ التغييرات</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    setupPasswordModalEvents();
+}
+
+function setupPasswordModalEvents() {
+    // التحقق من قوة كلمة المرور
+    document.getElementById('newPassword').addEventListener('input', function() {
+        checkPasswordStrength(this.value);
+    });
+    
+    // حفظ كلمة المرور
+    document.getElementById('savePasswordBtn').addEventListener('click', function() {
+        changeAdminPassword();
+    });
+    
+    // إغلاق النافذة
+    document.querySelectorAll('#changePasswordModal .close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('changePasswordModal').remove();
+        });
+    });
+}
+
+function checkPasswordStrength(password) {
+    let strength = 0;
+    const text = document.getElementById('passwordStrengthText');
+    const bar = document.getElementById('passwordStrengthBar');
+    
+    // قواعد التحقق
+    if (password.length >= 8) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+    
+    // تحديث المؤشر
+    bar.style.width = strength + '%';
+    
+    if (strength < 50) {
+        bar.style.background = '#dc3545';
+        text.textContent = 'ضعيفة';
+        text.style.color = '#dc3545';
+    } else if (strength < 75) {
+        bar.style.background = '#ffc107';
+        text.textContent = 'متوسطة';
+        text.style.color = '#ffc107';
+    } else {
+        bar.style.background = '#28a745';
+        text.textContent = 'قوية';
+        text.style.color = '#28a745';
+    }
+}
+
+function changeAdminPassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('passwordError');
+    
+    // إخفاء رسالة الخطأ
+    errorDiv.style.display = 'none';
+    
+    // التحقق من صحة كلمة المرور الحالية
+    if (currentPassword !== adminCredentials.password) {
+        errorDiv.textContent = 'كلمة المرور الحالية غير صحيحة';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // التحقق من تطابق كلمتي المرور الجديدتين
+    if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'كلمة المرور الجديدة غير متطابقة';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // التحقق من قوة كلمة المرور الجديدة
+    if (newPassword.length < 8) {
+        errorDiv.textContent = 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!/[A-Z]/.test(newPassword)) {
+        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على حرف كبير على الأقل';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!/[0-9]/.test(newPassword)) {
+        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على رقم على الأقل';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+        errorDiv.textContent = 'يجب أن تحتوي كلمة المرور على رمز خاص على الأقل (!@#$%^&*)';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // حفظ كلمة المرور الجديدة
+    adminCredentials.password = newPassword;
+    adminCredentials.lastChanged = new Date().toISOString();
+    localStorage.setItem('admin_credentials', JSON.stringify(adminCredentials));
+    
+    // إغلاق النافذة وإظهار رسالة النجاح
+    document.getElementById('changePasswordModal').remove();
+    showAdminNotification('تم تغيير كلمة المرور بنجاح', 'success');
+    
+    // تسجيل الخروج وإعادة التوجيه
+    setTimeout(() => {
+        sessionStorage.removeItem('admin_logged_in');
+        sessionStorage.removeItem('login_time');
+        showAdminNotification('الرجاء تسجيل الدخول مرة أخرى بكلمة المرور الجديدة', 'info');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+    }, 3000);
+}
+
+// ==================== إضافة زر تغيير كلمة المرور ====================
+function addChangePasswordButton() {
+    // إضافة زر في شريط المستخدم
+    const userSection = document.querySelector('.admin-user');
+    if (userSection) {
+        const changePasswordBtn = document.createElement('button');
+        changePasswordBtn.className = 'btn-change-password';
+        changePasswordBtn.innerHTML = '<i class="fas fa-key"></i>';
+        changePasswordBtn.title = 'تغيير كلمة المرور';
+        changePasswordBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #2d5af1;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        `;
+        
+        changePasswordBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#f0f7ff';
+        });
+        
+        changePasswordBtn.addEventListener('mouseleave', function() {
+            this.style.background = 'none';
+        });
+        
+        changePasswordBtn.addEventListener('click', openChangePasswordModal);
+        
+        userSection.insertBefore(changePasswordBtn, userSection.firstChild);
+    }
+    
+    // إضافة عنصر في القائمة الجانبية
+    const sidebarMenu = document.querySelector('.sidebar-menu');
+    if (sidebarMenu) {
+        const menuItem = document.createElement('li');
+        menuItem.innerHTML = `
+            <a href="#" onclick="openChangePasswordModal(); return false;">
+                <i class="fas fa-key"></i>
+                <span>تغيير كلمة المرور</span>
+            </a>
+        `;
+        menuItem.style.borderTop = '1px solid #eee';
+        menuItem.style.marginTop = '10px';
+        menuItem.style.paddingTop = '10px';
+        
+        sidebarMenu.appendChild(menuItem);
+    }
+}
+
+// ==================== تسجيل الخروج ====================
+function logoutAdmin() {
+    if (confirm('هل تريد تسجيل الخروج من لوحة التحكم؟')) {
+        sessionStorage.removeItem('admin_logged_in');
+        sessionStorage.removeItem('login_time');
+        window.location.href = 'login.html';
+    }
+}
+
+// تحديث حدث تسجيل الخروج في setupEventListeners
+function setupEventListeners() {
+    // ... الكود الحالي ...
+    
+    // تحديث حدث تسجيل الخروج
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logoutAdmin);
+    }
+    
+    // إضافة زر تغيير كلمة المرور
+    setTimeout(addChangePasswordButton, 1000);
+}
 /*
 ==============================================
 لوحة تحكم المتجر - مجيب العباب
@@ -1033,3 +1309,4 @@ adminStyle.textContent = `
 `;
 
 document.head.appendChild(adminStyle);
+
