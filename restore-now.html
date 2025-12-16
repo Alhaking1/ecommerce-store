@@ -1,1 +1,251 @@
 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استعادة المنتجات | مجيب العباب</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2d5af1 0%, #6c8eff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .restore-container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2d5af1;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background-color: #2d5af1;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #1a47c9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-restore {
+            background-color: #28a745;
+        }
+        
+        .btn-restore:hover {
+            background-color: #218838;
+        }
+        
+        .btn-check {
+            background-color: #ff6b35;
+        }
+        
+        .btn-check:hover {
+            background-color: #e55a2b;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="restore-container">
+        <h1><i class="fas fa-sync-alt"></i> استعادة منتجات المتجر</h1>
+        <p>هذه الأداة ستعيد جميع منتجاتك المفقودة إلى المتجر.</p>
+        
+        <div style="margin: 30px 0;">
+            <button class="btn btn-check" onclick="checkProducts()">
+                <i class="fas fa-search"></i> فحص المنتجات الحالية
+            </button>
+            
+            <button class="btn btn-restore" onclick="restoreAllProducts()">
+                <i class="fas fa-redo"></i> استعادة جميع المنتجات
+            </button>
+            
+            <button class="btn" onclick="restoreFromScript()">
+                <i class="fas fa-code"></i> استعادة من script.js
+            </button>
+        </div>
+        
+        <div id="result" class="result"></div>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-radius: 10px;">
+            <h3><i class="fas fa-info-circle"></i> معلومات المطور</h3>
+            <p>👨‍💻 <strong>مجيب العباب</strong></p>
+            <p>📧 mjyblwan0@gmail.com</p>
+            <p>📱 781238648</p>
+        </div>
+    </div>
+
+    <script>
+        // المنتجات الأصلية الكاملة
+        const originalProducts = [
+            {
+                "id": 1,
+                "name": "سماعة رأس لاسلكية",
+                "category": "إلكترونيات",
+                "price": 250,
+                "oldPrice": 300,
+                "image": "headphones.png",
+                "description": "سماعة رأس عالية الجودة مع إلغاء الضوضاء النشط، بطارية تدوم 30 ساعة.",
+                "inStock": true,
+                "featured": true
+            },
+            {
+                "id": 2,
+                "name": "هاتف ذكي",
+                "category": "إلكترونيات",
+                "price": 1200,
+                "oldPrice": 1400,
+                "image": "phone.png",
+                "description": "أحدث هاتف ذكي بكاميرا رباعية، شاشة 6.7 بوصة، ذاكرة 128 جيجابايت.",
+                "inStock": true,
+                "featured": true
+            },
+            {
+                "id": 3,
+                "name": "ساعة ذكية",
+                "category": "إلكترونيات",
+                "price": 180,
+                "oldPrice": 220,
+                "image": "smartwatch.png",
+                "description": "ساعة ذكية تتبع اللياقة، معدل ضربات القلب، النوم، مقاومة للماء.",
+                "inStock": true,
+                "featured": false
+            },
+            {
+                "id": 4,
+                "name": "لوحة مفاتيح ميكانيكية",
+                "category": "إلكترونيات",
+                "price": 90,
+                "oldPrice": 120,
+                "image": "keyboard.png",
+                "description": "لوحة مفاتيح ميكانيكية بإضاءة RGB، مفاتيح حمراء، توصيل USB.",
+                "inStock": true,
+                "featured": true
+            },
+            {
+                "id": 5,
+                "name": "ماوس ألعاب",
+                "category": "إكسسوارات",
+                "price": 45,
+                "oldPrice": 60,
+                "image": "mouse.png",
+                "description": "ماوس ألعاب بدقة 16000 نقطة في البوصة، 8 أزرار قابلة للبرمجة.",
+                "inStock": true,
+                "featured": false
+            },
+            {
+                "id": 6,
+                "name": "حقيبة كمبيوتر محمول",
+                "category": "إكسسوارات",
+                "price": 35,
+                "oldPrice": 50,
+                "image": "laptop-bag.png",
+                "description": "حقيبة كمبيوتر محمول مقاومة للماء، جيوب متعددة، شاحن محمول.",
+                "inStock": false,
+                "featured": false
+            }
+        ];
+
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<p><i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}</p>`;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        function checkProducts() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            if (products.length === 0) {
+                showResult('❌ لا توجد منتجات في المتجر', 'info');
+            } else {
+                showResult(`✅ تم العثور على ${products.length} منتج في المتجر:<br>${products.map(p => p.name).join(', ')}`, 'success');
+            }
+        }
+
+        function restoreAllProducts() {
+            // حفظ جميع المنتجات في localStorage
+            localStorage.setItem('products', JSON.stringify(originalProducts));
+            
+            // حفظ تاريخ التحديث
+            localStorage.setItem('products_restored', new Date().toISOString());
+            
+            showResult(`✅ تم استعادة ${originalProducts.length} منتج بنجاح!<br>الآن افتح المتجر الرئيسي ولوحة التحكم.`, 'success');
+            
+            // عرض المنتجات المستعادة
+            console.log('📦 المنتجات المستعادة:', originalProducts);
+        }
+
+        function restoreFromScript() {
+            // محاولة الوصول إلى script.js
+            try {
+                if (typeof window.products !== 'undefined') {
+                    localStorage.setItem('products', JSON.stringify(window.products));
+                    showResult(`✅ تم استعادة ${window.products.length} منتج من script.js`, 'success');
+                } else {
+                    // إذا لم تكن products متاحة، نستخدم الافتراضية
+                    restoreAllProducts();
+                }
+            } catch (error) {
+                showResult('❌ لا يمكن الوصول إلى script.js، استخدم زر الاستعادة الرئيسي', 'info');
+            }
+        }
+
+        // فحص المنتجات تلقائياً عند التحميل
+        window.onload = function() {
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+            if (products.length === 0) {
+                showResult('⚠️ لم يتم العثور على منتجات في المتجر. استخدم زر الاستعادة.', 'info');
+            }
+        };
+    </script>
+</body>
+</html>
