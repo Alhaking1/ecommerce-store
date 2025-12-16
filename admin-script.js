@@ -1,141 +1,636 @@
-/*
-==============================================
-لوحة تحكم المتجر - مجيب العباب
-نسخة محمية - لا تظهر قبل الدخول
-==============================================
-*/
+// ==================== نظام لوحة التحكم الكامل ====================
+console.log('🛡️ لوحة تحكم المتجر - مجيب العباب');
+console.log('📧 التواصل: mjyblwan0@gmail.com');
+console.log('📱 واتساب: 781238648');
 
-// ==================== ⚡ التحقق الفوري من الدخول ====================
-(function immediateLoginCheck() {
-    // هذا الكود ينفذ فور تحميل الملف
-    console.log('🔐 التحقق الفوري من الدخول...');
+// متغيرات عامة
+let adminProducts = [];
+let adminOrders = [];
+let adminCustomers = [];
+
+// تهيئة لوحة التحكم
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 بدء تحميل لوحة التحكم...');
     
-    // 1. التحقق من sessionStorage
+    // التحقق من تسجيل الدخول
     if (!sessionStorage.getItem('admin_logged_in')) {
-        console.log('❌ غير مسجل دخول - توجيه فوري');
+        console.log('❌ غير مسجل دخول - توجيه إلى login.html');
         window.location.href = 'login.html';
         return;
     }
     
-    // 2. التحقق من وقت الدخول
-    const loginTime = sessionStorage.getItem('login_time');
-    if (loginTime) {
-        const loginDate = new Date(loginTime);
-        const currentDate = new Date();
-        const hoursDiff = (currentDate - loginDate) / (1000 * 60 * 60);
-        
-        if (hoursDiff > 4) { // 4 ساعات
-            console.log('⏰ انتهت مدة الجلسة');
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-            return;
-        }
+    console.log('✅ مسجل دخول بنجاح');
+    
+    // إخفاء شاشة التحميل
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+        console.log('✅ تم إخفاء شاشة التحميل');
     }
     
-    console.log('✅ تم التحقق من الدخول');
-    
-    // إخفاء شاشة التحميل الأصلية بعد تأكيد الدخول
-    setTimeout(() => {
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            loadingScreen.style.opacity = '0';
-            loadingScreen.style.transition = 'opacity 0.3s ease';
-            setTimeout(() => {
-                loadingScreen.style.display = 'none';
-                
-                // إظهار المحتوى المخفي
-                document.querySelectorAll('[style*="display:none"]').forEach(el => {
-                    el.style.display = '';
-                });
-                
-                // بدء تشغيل لوحة التحكم
-                startAdminPanel();
-            }, 300);
-        }
-    }, 800);
-})();
-
-// ==================== بدء لوحة التحكم ====================
-let panelStarted = false;
-
-function startAdminPanel() {
-    if (panelStarted) return;
-    panelStarted = true;
-    
-    console.log('🚀 بدء تشغيل لوحة التحكم');
-    
-    // تحميل البيانات الأساسية
-    loadInitialData();
-    
-    // إعداد الواجهة
-    setupInterface();
+    // تحميل البيانات
+    loadAllAdminData();
     
     // إعداد الأحداث
-    setupEventListeners();
-}
-
-function loadInitialData() {
-    console.log('📊 تحميل البيانات الأولية');
-    
-    // تحميل المنتجات
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    if (products.length > 0) {
-        loadProductsTable();
-    }
-    
-    // تحميل الطلبات
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    if (orders.length > 0) {
-        loadOrdersTable();
-        loadRecentOrders();
-        updateOrdersBadge();
-    }
-    
-    // تحميل العملاء
-    loadCustomersTable();
-    
-    // تحديث الإحصائيات
-    updateStatistics();
-    
-    // تحميل الإعدادات
-    loadStoreSettings();
-    loadDiscountCodes();
-}
-
-function setupInterface() {
-    console.log('🎨 إعداد الواجهة');
+    setupAdminEvents();
     
     // تفعيل التبويب الأول
-    setTimeout(() => {
-        const firstTab = document.querySelector('.sidebar-menu li[data-tab="dashboard"]');
-        if (firstTab) {
-            activateTab('dashboard');
-        }
-    }, 50);
+    activateTab('dashboard');
+});
+
+// ==================== دوال تحميل البيانات ====================
+
+/**
+ * تحميل جميع البيانات
+ */
+function loadAllAdminData() {
+    console.log('📊 جاري تحميل جميع البيانات...');
     
-    // إضافة زر تغيير كلمة المرور
-    setTimeout(addChangePasswordButton, 100);
+    // 1. تحميل المنتجات
+    loadAdminProducts();
     
-    // إعداد القائمة الجانبية للهواتف
-    setTimeout(setupMobileSidebar, 150);
+    // 2. تحميل الطلبات
+    loadAdminOrders();
     
-    // تحميل المخططات
-    setTimeout(() => {
-        try {
-            loadCharts();
-            loadTopProducts();
-        } catch (e) {
-            console.log('⚠️ بعض المكونات غير متاحة:', e.message);
-        }
-    }, 200);
+    // 3. تحميل العملاء
+    loadAdminCustomers();
+    
+    // 4. تحديث الإحصائيات
+    updateAdminStats();
+    
+    console.log('✅ تم تحميل جميع البيانات');
 }
 
-// ==================== الدوال الأساسية ====================
-function activateTab(tabId) {
-    console.log(`🎯 تفعيل: ${tabId}`);
+/**
+ * تحميل المنتجات
+ */
+function loadAdminProducts() {
+    console.log('📦 جاري تحميل المنتجات...');
     
+    // محاولة تحميل من localStorage
+    adminProducts = JSON.parse(localStorage.getItem('products')) || [];
+    
+    // إذا لم توجد منتجات، استخدم المنتجات الافتراضية
+    if (adminProducts.length === 0) {
+        console.log('⚠️ لا توجد منتجات في localStorage، استخدام الافتراضية');
+        adminProducts = getDefaultProducts();
+        localStorage.setItem('products', JSON.stringify(adminProducts));
+    }
+    
+    console.log(`📦 تم تحميل ${adminProducts.length} منتج`);
+    
+    // عرض المنتجات
+    displayAdminProducts();
+}
+
+/**
+ * الحصول على المنتجات الافتراضية
+ */
+function getDefaultProducts() {
+    return [
+        {
+            "id": 1,
+            "name": "سماعة رأس لاسلكية",
+            "category": "إلكترونيات",
+            "price": 250,
+            "oldPrice": 300,
+            "image": "headphones.png",
+            "description": "سماعة رأس عالية الجودة مع إلغاء الضوضاء النشط، بطارية تدوم 30 ساعة.",
+            "inStock": true,
+            "featured": true
+        },
+        {
+            "id": 2,
+            "name": "هاتف ذكي",
+            "category": "إلكترونيات",
+            "price": 1200,
+            "oldPrice": 1400,
+            "image": "phone.png",
+            "description": "أحدث هاتف ذكي بكاميرا رباعية، شاشة 6.7 بوصة، ذاكرة 128 جيجابايت.",
+            "inStock": true,
+            "featured": true
+        },
+        {
+            "id": 3,
+            "name": "ساعة ذكية",
+            "category": "إلكترونيات",
+            "price": 180,
+            "oldPrice": 220,
+            "image": "smartwatch.png",
+            "description": "ساعة ذكية تتبع اللياقة، معدل ضربات القلب، النوم، مقاومة للماء.",
+            "inStock": true,
+            "featured": false
+        },
+        {
+            "id": 4,
+            "name": "لوحة مفاتيح ميكانيكية",
+            "category": "إلكترونيات",
+            "price": 90,
+            "oldPrice": 120,
+            "image": "keyboard.png",
+            "description": "لوحة مفاتيح ميكانيكية بإضاءة RGB، مفاتيح حمراء، توصيل USB.",
+            "inStock": true,
+            "featured": true
+        },
+        {
+            "id": 5,
+            "name": "ماوس ألعاب",
+            "category": "إكسسوارات",
+            "price": 45,
+            "oldPrice": 60,
+            "image": "mouse.png",
+            "description": "ماوس ألعاب بدقة 16000 نقطة في البوصة، 8 أزرار قابلة للبرمجة.",
+            "inStock": true,
+            "featured": false
+        },
+        {
+            "id": 6,
+            "name": "حقيبة كمبيوتر محمول",
+            "category": "إكسسوارات",
+            "price": 35,
+            "oldPrice": 50,
+            "image": "laptop-bag.png",
+            "description": "حقيبة كمبيوتر محمول مقاومة للماء، جيوب متعددة، شاحن محمول.",
+            "inStock": false,
+            "featured": false
+        }
+    ];
+}
+
+/**
+ * عرض المنتجات في الجدول
+ */
+function displayAdminProducts() {
+    const tbody = document.getElementById('productsTableBody');
+    if (!tbody) {
+        console.error('❌ لم يتم العثور على جدول المنتجات');
+        return;
+    }
+    
+    if (adminProducts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-table">
+                    <i class="fas fa-box-open"></i>
+                    لا توجد منتجات
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = adminProducts.map(product => `
+        <tr>
+            <td>
+                <img src="${product.image || 'images/default.png'}" 
+                     class="product-image" 
+                     alt="${product.name}"
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"
+                     onerror="this.src='https://via.placeholder.com/50x50/2d5af1/FFFFFF?text=${product.name.substring(0, 5)}'">
+            </td>
+            <td><strong>${product.name}</strong></td>
+            <td>${product.category}</td>
+            <td>${product.price} ر.س</td>
+            <td>${product.inStock ? 'نعم' : 'لا'}</td>
+            <td>
+                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
+                    ${product.inStock ? 'متوفر' : 'غير متوفر'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    
+    console.log(`✅ تم عرض ${adminProducts.length} منتج في الجدول`);
+}
+
+/**
+ * تحميل الطلبات
+ */
+function loadAdminOrders() {
+    console.log('📦 جاري تحميل الطلبات...');
+    
+    adminOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    console.log(`📦 تم تحميل ${adminOrders.length} طلب`);
+    
+    // عرض الطلبات
+    displayAdminOrders();
+    displayRecentOrders();
+}
+
+/**
+ * عرض الطلبات الكاملة
+ */
+function displayAdminOrders() {
+    const tbody = document.getElementById('ordersTableBody');
+    if (!tbody) return;
+    
+    if (adminOrders.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-table">
+                    <i class="fas fa-shopping-cart"></i>
+                    لا توجد طلبات
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = adminOrders.map(order => `
+        <tr>
+            <td>#${order.id ? order.id.toString().slice(-6) : '000000'}</td>
+            <td>${order.customer?.name || 'غير معروف'}</td>
+            <td>${order.date || 'غير معروف'}</td>
+            <td>${order.cart?.length || 0} منتج</td>
+            <td>${order.total ? order.total.toFixed(2) : '0.00'} ر.س</td>
+            <td>
+                <span class="status-badge status-${order.status || 'new'}">
+                    ${order.status || 'جديد'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-action btn-edit" onclick="editOrderStatus(${order.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/**
+ * عرض الطلبات الأخيرة
+ */
+function displayRecentOrders() {
+    const tbody = document.getElementById('recentOrdersBody');
+    if (!tbody) return;
+    
+    if (adminOrders.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-table">
+                    <i class="fas fa-clock"></i>
+                    لا توجد طلبات أخيرة
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // أخذ آخر 5 طلبات
+    const recentOrders = adminOrders.slice(-5).reverse();
+    
+    tbody.innerHTML = recentOrders.map(order => `
+        <tr>
+            <td>#${order.id ? order.id.toString().slice(-6) : '000000'}</td>
+            <td>${order.customer?.name || 'غير معروف'}</td>
+            <td>${order.date || 'غير معروف'}</td>
+            <td>${order.total ? order.total.toFixed(2) : '0.00'} ر.س</td>
+            <td>
+                <span class="status-badge">
+                    ${order.status || 'جديد'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/**
+ * تحميل العملاء
+ */
+function loadAdminCustomers() {
+    console.log('👥 جاري تحميل العملاء...');
+    
+    // استخراج العملاء من الطلبات
+    const customersMap = new Map();
+    adminOrders.forEach(order => {
+        if (order.customer && order.customer.phone) {
+            customersMap.set(order.customer.phone, {
+                ...order.customer,
+                orders: (customersMap.get(order.customer.phone)?.orders || 0) + 1,
+                totalSpent: (customersMap.get(order.customer.phone)?.totalSpent || 0) + (order.total || 0)
+            });
+        }
+    });
+    
+    adminCustomers = Array.from(customersMap.values());
+    console.log(`👥 تم تحميل ${adminCustomers.length} عميل`);
+    
+    // عرض العملاء
+    displayAdminCustomers();
+}
+
+/**
+ * عرض العملاء
+ */
+function displayAdminCustomers() {
+    const tbody = document.getElementById('customersTableBody');
+    if (!tbody) return;
+    
+    if (adminCustomers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-table">
+                    <i class="fas fa-users"></i>
+                    لا توجد عملاء
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = adminCustomers.map(customer => `
+        <tr>
+            <td>${customer.name || 'غير معروف'}</td>
+            <td>${customer.phone || 'غير معروف'}</td>
+            <td>${customer.email || 'غير معروف'}</td>
+            <td>${customer.orders || 1}</td>
+            <td>${customer.totalSpent ? customer.totalSpent.toFixed(2) : '0.00'} ر.س</td>
+            <td>${customer.date || 'غير معروف'}</td>
+            <td>
+                <button class="btn-action btn-view" onclick="viewCustomerDetails('${customer.phone}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/**
+ * تحديث الإحصائيات
+ */
+function updateAdminStats() {
+    console.log('📈 تحديث الإحصائيات...');
+    
+    // عدد المنتجات
+    const totalProductsEl = document.getElementById('totalProducts');
+    if (totalProductsEl) totalProductsEl.textContent = adminProducts.length;
+    
+    // عدد الطلبات
+    const totalOrdersEl = document.getElementById('totalOrders');
+    if (totalOrdersEl) totalOrdersEl.textContent = adminOrders.length;
+    
+    // الإيرادات
+    const totalRevenue = adminOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const totalRevenueEl = document.getElementById('totalRevenue');
+    if (totalRevenueEl) totalRevenueEl.textContent = totalRevenue.toFixed(2) + ' ر.س';
+    
+    // عدد العملاء
+    const totalCustomersEl = document.getElementById('totalCustomers');
+    if (totalCustomersEl) totalCustomersEl.textContent = adminCustomers.length;
+    
+    console.log(`📊 الإحصائيات: ${adminProducts.length} منتج | ${adminOrders.length} طلب | ${totalRevenue} ر.س | ${adminCustomers.length} عميل`);
+}
+
+// ==================== دوال إدارة المنتجات ====================
+
+/**
+ * تعديل منتج
+ */
+function editAdminProduct(id) {
+    console.log('✏️ تعديل المنتج:', id);
+    
+    const product = adminProducts.find(p => p.id == id);
+    if (!product) {
+        alert('المنتج غير موجود');
+        return;
+    }
+    
+    // ملء النموذج
+    document.getElementById('productId').value = product.id;
+    document.getElementById('productName').value = product.name;
+    document.getElementById('productCategory').value = product.category;
+    document.getElementById('productPrice').value = product.price;
+    document.getElementById('productOldPrice').value = product.oldPrice || '';
+    document.getElementById('productDescription').value = product.description;
+    document.getElementById('productImage').value = product.image;
+    document.getElementById('productStock').value = product.inStock.toString();
+    document.getElementById('productFeatured').checked = product.featured;
+    document.getElementById('productModalTitle').textContent = 'تعديل المنتج';
+    
+    // إظهار النافذة
+    showModal('productModal');
+}
+
+/**
+ * حذف منتج
+ */
+function deleteAdminProduct(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+    
+    console.log('🗑️ حذف المنتج:', id);
+    
+    // تصفية المنتجات
+    adminProducts = adminProducts.filter(p => p.id != id);
+    
+    // حفظ في localStorage
+    localStorage.setItem('products', JSON.stringify(adminProducts));
+    
+    // تحديث العرض
+    displayAdminProducts();
+    updateAdminStats();
+    
+    alert('✅ تم حذف المنتج بنجاح');
+}
+
+/**
+ * إضافة منتج جديد
+ */
+function addNewProduct() {
+    console.log('➕ إضافة منتج جديد');
+    
+    // إعادة تعيين النموذج
+    document.getElementById('productForm').reset();
+    document.getElementById('productId').value = '';
+    document.getElementById('productModalTitle').textContent = 'إضافة منتج جديد';
+    
+    // إظهار النافذة
+    showModal('productModal');
+}
+
+/**
+ * حفظ المنتج
+ */
+function saveProduct() {
+    const id = document.getElementById('productId').value;
+    const name = document.getElementById('productName').value.trim();
+    const category = document.getElementById('productCategory').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const oldPrice = document.getElementById('productOldPrice').value ? parseFloat(document.getElementById('productOldPrice').value) : null;
+    const description = document.getElementById('productDescription').value.trim();
+    const image = document.getElementById('productImage').value.trim() || 'default.png';
+    const inStock = document.getElementById('productStock').value === 'true';
+    const featured = document.getElementById('productFeatured').checked;
+    
+    // التحقق من البيانات
+    if (!name || !category || isNaN(price) || !description) {
+        alert('الرجاء تعبئة جميع الحقول المطلوبة');
+        return;
+    }
+    
+    if (id) {
+        // تحديث منتج موجود
+        const index = adminProducts.findIndex(p => p.id == id);
+        if (index !== -1) {
+            adminProducts[index] = {
+                ...adminProducts[index],
+                name,
+                category,
+                price,
+                oldPrice,
+                description,
+                image,
+                inStock,
+                featured
+            };
+            console.log('✅ تم تحديث المنتج:', id);
+        }
+    } else {
+        // إضافة منتج جديد
+        const newId = adminProducts.length > 0 ? Math.max(...adminProducts.map(p => p.id)) + 1 : 1;
+        adminProducts.push({
+            id: newId,
+            name,
+            category,
+            price,
+            oldPrice,
+            description,
+            image,
+            inStock,
+            featured
+        });
+        console.log('✅ تم إضافة منتج جديد:', newId);
+    }
+    
+    // حفظ في localStorage
+    localStorage.setItem('products', JSON.stringify(adminProducts));
+    
+    // إغلاق النافذة
+    hideModal('productModal');
+    
+    // تحديث العرض
+    displayAdminProducts();
+    updateAdminStats();
+    
+    alert(id ? '✅ تم تحديث المنتج بنجاح' : '✅ تم إضافة المنتج بنجاح');
+}
+
+// ==================== دوال إدارة الطلبات ====================
+
+/**
+ * عرض تفاصيل الطلب
+ */
+function viewOrderDetails(id) {
+    console.log('👁️ عرض تفاصيل الطلب:', id);
+    
+    const order = adminOrders.find(o => o.id == id);
+    if (!order) {
+        alert('الطلب غير موجود');
+        return;
+    }
+    
+    // تحديث العنوان
+    document.getElementById('orderDetailsTitle').textContent = `تفاصيل الطلب #${order.id.toString().slice(-6)}`;
+    
+    // تحديث المحتوى
+    const content = document.getElementById('orderDetailsContent');
+    content.innerHTML = `
+        <div class="order-summary">
+            <p><strong>رقم الطلب:</strong> #${order.id.toString().slice(-6)}</p>
+            <p><strong>العميل:</strong> ${order.customer?.name || 'غير معروف'}</p>
+            <p><strong>الهاتف:</strong> ${order.customer?.phone || 'غير معروف'}</p>
+            <p><strong>البريد الإلكتروني:</strong> ${order.customer?.email || 'غير معروف'}</p>
+            <p><strong>العنوان:</strong> ${order.customer?.address || 'غير معروف'}</p>
+            <p><strong>التاريخ:</strong> ${order.date || 'غير معروف'}</p>
+            <p><strong>الحالة:</strong> ${order.status || 'جديد'}</p>
+            <p><strong>الإجمالي:</strong> ${order.total ? order.total.toFixed(2) : '0.00'} ر.س</p>
+            <p><strong>ملاحظات:</strong> ${order.customer?.notes || 'لا توجد'}</p>
+        </div>
+        
+        <h4>المنتجات:</h4>
+        <div class="order-products">
+            ${(order.cart || []).map(item => `
+                <div class="order-product-item">
+                    <div>${item.name}</div>
+                    <div>${item.quantity || 1} × ${item.price} ر.س = ${((item.quantity || 1) * item.price).toFixed(2)} ر.س</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    // إظهار النافذة
+    showModal('orderDetailsModal');
+}
+
+/**
+ * تعديل حالة الطلب
+ */
+function editOrderStatus(id) {
+    console.log('✏️ تعديل حالة الطلب:', id);
+    
+    const order = adminOrders.find(o => o.id == id);
+    if (!order) return;
+    
+    const newStatus = prompt('أدخل الحالة الجديدة للطلب:', order.status || 'جديد');
+    if (newStatus) {
+        order.status = newStatus;
+        localStorage.setItem('orders', JSON.stringify(adminOrders));
+        displayAdminOrders();
+        displayRecentOrders();
+        alert('✅ تم تحديث حالة الطلب');
+    }
+}
+
+// ==================== دوال إدارة العملاء ====================
+
+/**
+ * عرض تفاصيل العميل
+ */
+function viewCustomerDetails(phone) {
+    console.log('👁️ عرض تفاصيل العميل:', phone);
+    
+    const customer = adminCustomers.find(c => c.phone == phone);
+    if (!customer) {
+        alert('العميل غير موجود');
+        return;
+    }
+    
+    // الحصول على طلبات العميل
+    const customerOrders = adminOrders.filter(o => o.customer?.phone == phone);
+    
+    alert(`تفاصيل العميل:
+👤 الاسم: ${customer.name}
+📞 الهاتف: ${customer.phone}
+📧 البريد: ${customer.email}
+📍 العنوان: ${customer.address}
+📦 عدد الطلبات: ${customer.orders}
+💰 إجمالي المشتريات: ${customer.totalSpent.toFixed(2)} ر.س`);
+}
+
+// ==================== دوال النظام ====================
+
+/**
+ * تفعيل تبويب
+ */
+function activateTab(tabId) {
     // إخفاء جميع المحتويات
     document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
         tab.style.display = 'none';
     });
     
@@ -144,650 +639,205 @@ function activateTab(tabId) {
         item.classList.remove('active');
     });
     
-    // إضافة النشاط للعنصر الحالي
-    const activeItem = document.querySelector(`.sidebar-menu li[data-tab="${tabId}"]`);
-    if (activeItem) {
-        activeItem.classList.add('active');
-    }
-    
     // إظهار المحتوى المحدد
     const activeTab = document.getElementById(tabId);
     if (activeTab) {
+        activeTab.classList.add('active');
         activeTab.style.display = 'block';
     }
-}
-
-function loadProductsTable() {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const tbody = document.getElementById('productsTableBody');
     
-    if (!tbody) return;
-    
-    if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-table">لا توجد منتجات</td></tr>';
-        return;
+    // تفعيل العنصر في القائمة
+    const menuItem = document.querySelector(`.sidebar-menu li[data-tab="${tabId}"]`);
+    if (menuItem) {
+        menuItem.classList.add('active');
     }
     
-    tbody.innerHTML = products.map(p => `
-        <tr>
-            <td><img src="${p.image || 'default.png'}" class="product-image" alt="${p.name}"></td>
-            <td><strong>${p.name}</strong></td>
-            <td>${p.category}</td>
-            <td>${p.price} ر.س</td>
-            <td>${p.inStock ? 'نعم' : 'لا'}</td>
-            <td><span class="status-badge ${p.inStock ? 'status-available' : 'status-unavailable'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span></td>
-            <td>
-                <button class="btn-action btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button>
-                <button class="btn-action btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>
-    `).join('');
+    console.log(`🎯 تم تفعيل التبويب: ${tabId}`);
 }
 
-function addNewProduct() {
-    document.getElementById('productModal').classList.add('active');
-}
-
-function editProduct(productId) {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const product = products.find(p => p.id == productId);
-    
-    if (!product) {
-        showNotification('المنتج غير موجود', 'error');
-        return;
-    }
-    
-    // تعبئة النموذج
-    document.getElementById('productId').value = product.id;
-    document.getElementById('productName').value = product.name;
-    document.getElementById('productCategory').value = product.category;
-    document.getElementById('productPrice').value = product.price;
-    document.getElementById('productDescription').value = product.description;
-    
-    // إظهار النافذة
-    document.getElementById('productModal').classList.add('active');
-}
-
-function saveProduct() {
-    const productId = document.getElementById('productId').value;
-    const name = document.getElementById('productName').value;
-    const category = document.getElementById('productCategory').value;
-    const price = document.getElementById('productPrice').value;
-    const description = document.getElementById('productDescription').value;
-    
-    // التحقق من البيانات
-    if (!name || !category || !price || !description) {
-        showNotification('الرجاء تعبئة جميع الحقول', 'error');
-        return;
-    }
-    
-    // تحميل المنتجات الحالية
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    
-    // إنشاء كائن المنتج
-    const newProduct = {
-        id: productId ? parseInt(productId) : Date.now(),
-        name: name,
-        category: category,
-        price: parseFloat(price),
-        description: description,
-        image: 'images/default.png',
-        inStock: true,
-        featured: false
-    };
-    
-    // حفظ المنتج
-    if (productId) {
-        // تحديث منتج موجود
-        const index = products.findIndex(p => p.id == productId);
-        if (index !== -1) {
-            products[index] = newProduct;
-            showNotification('تم تحديث المنتج بنجاح');
-        }
-    } else {
-        // إضافة منتج جديد
-        products.push(newProduct);
-        showNotification('تم إضافة المنتج بنجاح');
-    }
-    
-    // حفظ في localStorage
-    localStorage.setItem('products', JSON.stringify(products));
-    
-    // تحديث الجدول
-    loadProductsTable();
-    
-    // إغلاق النافذة
-    document.getElementById('productModal').classList.remove('active');
-}
-
-function deleteProduct(productId) {
-    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
-    
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const filtered = products.filter(p => p.id != productId);
-    
-    localStorage.setItem('products', JSON.stringify(filtered));
-    loadProductsTable();
-    
-    showNotification('تم حذف المنتج بنجاح');
-}
-
-// ==================== نظام تغيير كلمة المرور ====================
-function addChangePasswordButton() {
-    console.log('🔑 إضافة زر تغيير كلمة المرور');
-    
-    // 1. في شريط المستخدم العلوي
-    const userSection = document.querySelector('.admin-user');
-    if (userSection) {
-        const btn = document.createElement('button');
-        btn.className = 'btn-change-password';
-        btn.innerHTML = '<i class="fas fa-key"></i>';
-        btn.title = 'تغيير كلمة المرور';
-        btn.style.cssText = `
-            background: none;
-            border: none;
-            color: #2d5af1;
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-left: 15px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        `;
-        
-        btn.onclick = function() {
-            openChangePasswordModal();
-        };
-        
-        userSection.insertBefore(btn, userSection.firstChild);
-    }
-    
-    // 2. في القائمة الجانبية (بدون إزاحة)
-    const sidebarMenu = document.querySelector('.sidebar-menu');
-    if (sidebarMenu) {
-        const item = document.createElement('li');
-        item.innerHTML = `
-            <a href="#" style="color: #ff6b35;">
-                <i class="fas fa-key" style="color: #ff6b35; margin-left: 15px;"></i>
-                <span>تغيير كلمة المرور</span>
-            </a>
-        `;
-        
-        item.onclick = function(e) {
-            e.preventDefault();
-            openChangePasswordModal();
-        };
-        
-        item.style.borderTop = '1px solid #eee';
-        item.style.paddingTop = '10px';
-        item.style.marginTop = '5px';
-        
-        sidebarMenu.appendChild(item);
+/**
+ * إظهار نافذة
+ */
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
     }
 }
 
-function openChangePasswordModal() {
-    const modalHTML = `
-        <div class="modal-overlay active">
-            <div class="modal" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="passwordError" style="display:none; background:#fee; color:#dc3545; padding:10px; border-radius:5px; margin-bottom:15px;"></div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <label><i class="fas fa-lock"></i> كلمة المرور الحالية</label>
-                        <input type="password" id="currentPassword" placeholder="أدخل كلمة المرور الحالية" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
-                    </div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <label><i class="fas fa-lock"></i> كلمة المرور الجديدة</label>
-                        <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
-                    </div>
-                    
-                    <div style="margin-bottom:15px;">
-                        <label><i class="fas fa-lock"></i> تأكيد كلمة المرور الجديدة</label>
-                        <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary close-modal">إلغاء</button>
-                    <button class="btn btn-primary" id="savePassword">حفظ</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    const div = document.createElement('div');
-    div.innerHTML = modalHTML;
-    document.body.appendChild(div);
-    
-    // إعداد الأحداث
-    document.getElementById('savePassword').onclick = changePassword;
-    document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.onclick = function() {
-            this.closest('.modal-overlay').remove();
-        };
-    });
-    
-    document.querySelector('.modal-overlay').onclick = function(e) {
-        if (e.target === this) this.remove();
-    };
+/**
+ * إخفاء نافذة
+ */
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
-function changePassword() {
-    const current = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value;
-    const confirmPass = document.getElementById('confirmPassword').value;
-    const errorDiv = document.getElementById('passwordError');
-    
-    // بيانات الدخول
-    const credentials = JSON.parse(localStorage.getItem('admin_credentials')) || {
-        username: 'admin',
-        password: 'Admin@1234'
-    };
-    
-    errorDiv.style.display = 'none';
-    errorDiv.textContent = '';
-    
-    // التحقق
-    if (current !== credentials.password) {
-        errorDiv.textContent = 'كلمة المرور الحالية غير صحيحة';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    if (newPass !== confirmPass) {
-        errorDiv.textContent = 'كلمة المرور الجديدة غير متطابقة';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    if (newPass.length < 8) {
-        errorDiv.textContent = 'يجب أن تكون 8 أحرف على الأقل';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    // حفظ الجديدة
-    credentials.password = newPass;
-    localStorage.setItem('admin_credentials', JSON.stringify(credentials));
-    
-    // إغلاق النافذة
-    document.querySelector('.modal-overlay').remove();
-    
-    // إظهار رسالة
-    showNotification('تم تغيير كلمة المرور بنجاح', 'success');
-    
-    // تسجيل الخروج بعد ثانيتين
-    setTimeout(() => {
-        sessionStorage.clear();
+/**
+ * تسجيل الخروج
+ */
+function logout() {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        sessionStorage.removeItem('admin_logged_in');
         window.location.href = 'login.html';
-    }, 2000);
-}
-
-// ==================== دوال المساعدة ====================
-function showNotification(message, type = 'success') {
-    const div = document.createElement('div');
-    div.textContent = message;
-    div.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        z-index: 9999;
-        animation: fadeIn 0.3s;
-        font-family: 'Cairo', sans-serif;
-    `;
-    
-    document.body.appendChild(div);
-    
-    setTimeout(() => {
-        div.style.animation = 'fadeOut 0.3s';
-        setTimeout(() => div.remove(), 300);
-    }, 3000);
+    }
 }
 
 // ==================== إعداد الأحداث ====================
-function setupEventListeners() {
-    console.log('🔌 إعداد الأحداث');
-    
-    // أحداث التبويبات
-    document.querySelectorAll('.sidebar-menu li[data-tab]').forEach(item => {
-        item.onclick = function() {
-            activateTab(this.getAttribute('data-tab'));
-        };
-    });
-    
-    // أحداث المنتجات
-    document.getElementById('addProductBtn')?.addEventListener('click', addNewProduct);
-    document.getElementById('saveProductBtn')?.addEventListener('click', saveProduct);
-    
-    // أحداث الإعدادات
-    document.getElementById('storeSettingsForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // حفظ الإعدادات
-        const settings = {
-            storeName: document.getElementById('storeName').value,
-            storeEmail: document.getElementById('storeEmail').value,
-            storePhone: document.getElementById('storePhone').value,
-            storeAddress: document.getElementById('storeAddress').value
-        };
-        
-        localStorage.setItem('store_settings', JSON.stringify(settings));
-        showNotification('تم حفظ الإعدادات بنجاح');
-    });
-    
-    // أحداث النوافذ
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal-overlay')) {
-            e.target.classList.remove('active');
-        }
-        if (e.target.classList.contains('close-modal')) {
-            e.target.closest('.modal-overlay').classList.remove('active');
-        }
-    });
-    
-    // أحداث أخرى
-    document.querySelector('.btn-store')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.open('index.html', '_blank');
-    });
-    
-    document.querySelector('.btn-logout')?.addEventListener('click', function() {
-        if (confirm('هل تريد تسجيل الخروج؟')) {
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        }
-    });
-}
 
-// ==================== دالات إضافية ====================
-function loadOrdersTable() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const tbody = document.getElementById('ordersTableBody');
+function setupAdminEvents() {
+    console.log('🔧 إعداد الأحداث...');
     
-    if (!tbody) return;
+    // أحداث القائمة الجانبية
+    document.querySelectorAll('.sidebar-menu li').forEach(item => {
+        item.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            activateTab(tabId);
+        });
+    });
     
-    if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-table">لا توجد طلبات</td></tr>';
-        return;
+    // زر إضافة منتج
+    const addProductBtn = document.getElementById('addProductBtn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', addNewProduct);
     }
     
-    tbody.innerHTML = orders.map(order => `
-        <tr>
-            <td>#${order.id?.toString().slice(-6) || '000000'}</td>
-            <td>${order.customer?.name || 'غير معروف'}</td>
-            <td>${order.date || 'غير معروف'}</td>
-            <td>${order.cart?.length || 0}</td>
-            <td>${order.total?.toFixed(2) || '0.00'} ر.س</td>
-            <td><span class="status-badge status-${order.status || 'new'}">${getStatusText(order.status)}</span></td>
-            <td>
-                <button class="btn-action btn-view" onclick="viewOrder(${order.id})"><i class="fas fa-eye"></i></button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function loadRecentOrders() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const tbody = document.getElementById('recentOrdersBody');
-    
-    if (!tbody) return;
-    
-    const recent = orders.slice(-5).reverse();
-    
-    if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-table">لا توجد طلبات</td></tr>';
-        return;
+    // زر حفظ المنتج
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    if (saveProductBtn) {
+        saveProductBtn.addEventListener('click', saveProduct);
     }
     
-    tbody.innerHTML = recent.map(order => `
-        <tr>
-            <td>#${order.id?.toString().slice(-6) || '000000'}</td>
-            <td>${order.customer?.name || 'غير معروف'}</td>
-            <td>${order.date || 'غير معروف'}</td>
-            <td>${order.total?.toFixed(2) || '0.00'} ر.س</td>
-            <td><span class="status-badge status-${order.status || 'new'}">${getStatusText(order.status)}</span></td>
-            <td>
-                <button class="btn-action btn-view" onclick="viewOrder(${order.id})"><i class="fas fa-eye"></i></button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function updateOrdersBadge() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const newOrders = orders.filter(order => order.status === 'new').length;
-    const badge = document.querySelector('.new-orders');
-    
-    if (badge) {
-        badge.textContent = newOrders;
-        badge.style.display = newOrders > 0 ? 'inline-block' : 'none';
-    }
-}
-
-function loadCustomersTable() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const tbody = document.getElementById('customersTableBody');
-    
-    if (!tbody) return;
-    
-    // استخراج العملاء
-    const customersMap = new Map();
-    orders.forEach(order => {
-        if (order.customer && order.customer.phone) {
-            customersMap.set(order.customer.phone, order.customer);
-        }
-    });
-    
-    const customers = Array.from(customersMap.values());
-    
-    if (customers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-table">لا توجد عملاء</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = customers.map(customer => `
-        <tr>
-            <td>${customer.name || 'غير معروف'}</td>
-            <td>${customer.phone || 'غير معروف'}</td>
-            <td>${customer.email || 'لم يذكر'}</td>
-            <td>${orders.filter(o => o.customer?.phone === customer.phone).length}</td>
-            <td>${orders.filter(o => o.customer?.phone === customer.phone).reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2)} ر.س</td>
-            <td>${orders.find(o => o.customer?.phone === customer.phone)?.date || 'غير معروف'}</td>
-            <td>
-                <button class="btn-action btn-view" onclick="viewCustomer('${customer.phone}')"><i class="fas fa-eye"></i></button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function updateStatistics() {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    
-    // حساب العملاء
-    const customersMap = new Map();
-    orders.forEach(order => {
-        if (order.customer && order.customer.phone) {
-            customersMap.set(order.customer.phone, order.customer);
-        }
-    });
-    
-    // تحديث الإحصائيات
-    document.getElementById('totalOrders').textContent = orders.length;
-    document.getElementById('totalCustomers').textContent = customersMap.size;
-    document.getElementById('totalProducts').textContent = products.length;
-    document.getElementById('totalRevenue').textContent = orders.reduce((sum, order) => sum + (order.total || 0), 0).toFixed(2) + ' ر.س';
-}
-
-function getStatusText(status) {
-    const map = {
-        'new': 'جديد',
-        'processing': 'قيد المعالجة',
-        'shipped': 'تم الشحن',
-        'delivered': 'تم التوصيل',
-        'cancelled': 'ملغي'
-    };
-    return map[status] || status;
-}
-
-function loadStoreSettings() {
-    const settings = JSON.parse(localStorage.getItem('store_settings')) || {
-        storeName: 'متجر تقني',
-        storeEmail: 'mjyblwan0@gmail.com',
-        storePhone: '781238648',
-        storeAddress: 'المملكة العربية السعودية'
-    };
-    
-    document.getElementById('storeName').value = settings.storeName;
-    document.getElementById('storeEmail').value = settings.storeEmail;
-    document.getElementById('storePhone').value = settings.storePhone;
-    document.getElementById('storeAddress').value = settings.storeAddress;
-}
-
-function loadDiscountCodes() {
-    const codes = JSON.parse(localStorage.getItem('discount_codes')) || {
-        'TECH10': { discount: 10, active: true },
-        'WELCOME20': { discount: 20, active: true }
-    };
-    
-    const tbody = document.getElementById('discountCodesTable');
-    if (!tbody) return;
-    
-    tbody.innerHTML = Object.entries(codes).map(([code, data]) => `
-        <tr>
-            <td><strong>${code}</strong></td>
-            <td>${data.discount}%</td>
-            <td><span class="status-badge ${data.active ? 'status-available' : 'status-unavailable'}">${data.active ? 'نشط' : 'غير نشط'}</span></td>
-            <td>
-                <button class="btn-action btn-edit" onclick="editDiscountCode('${code}')"><i class="fas fa-edit"></i></button>
-                <button class="btn-action btn-delete" onclick="deleteDiscountCode('${code}')"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function setupMobileSidebar() {
-    const toggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.admin-sidebar');
-    
-    if (!toggle || !sidebar) return;
-    
-    toggle.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
-    
-    toggle.addEventListener('click', function() {
-        sidebar.classList.toggle('active');
-    });
-    
-    window.addEventListener('resize', function() {
-        toggle.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
-    });
-}
-
-// ==================== بيانات تجريبية ====================
-(function createSampleData() {
-    // بيانات المنتجات
-    if (!localStorage.getItem('products') || JSON.parse(localStorage.getItem('products')).length === 0) {
-        localStorage.setItem('products', JSON.stringify([
-            {
-                id: 1,
-                name: "سماعة لاسلكية",
-                category: "إلكترونيات",
-                price: 250,
-                description: "سماعة عالية الجودة",
-                image: "images/headphones.jpg",
-                inStock: true,
-                featured: true
+    // أزرار إغلاق النوافذ
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.modal-overlay');
+            if (modal) {
+                modal.style.display = 'none';
             }
-        ]));
+        });
+    });
+    
+    // زر تسجيل الخروج
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
     }
     
-    // بيانات الطلبات
-    if (!localStorage.getItem('orders') || JSON.parse(localStorage.getItem('orders')).length === 0) {
-        localStorage.setItem('orders', JSON.stringify([
-            {
-                id: Date.now(),
-                customer: {
-                    name: "أحمد محمد",
-                    phone: "0512345678",
-                    email: "ahmed@example.com"
-                },
-                cart: [
-                    {
-                        id: 1,
-                        name: "سماعة لاسلكية",
-                        price: 250,
-                        quantity: 1
-                    }
-                ],
-                total: 250,
-                date: new Date().toLocaleDateString('ar-SA'),
-                status: "new"
+    // زر القائمة للهواتف
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.admin-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
             }
-        ]));
+        });
     }
     
-    // بيانات الدخول
-    if (!localStorage.getItem('admin_credentials')) {
-        localStorage.setItem('admin_credentials', JSON.stringify({
-            username: 'admin',
-            password: 'Admin@1234',
-            lastChanged: new Date().toISOString()
-        }));
+    // فلتر المنتجات
+    const productSearch = document.getElementById('productSearch');
+    if (productSearch) {
+        productSearch.addEventListener('input', filterProducts);
     }
-})();
-
-console.log('✅ لوحة التحكم جاهزة');
-
-// ==================== دوال إضافية (مفقودة في الكود الأصلي) ====================
-function loadCharts() {
-    console.log('📈 تحميل المخططات (وظيفة تجريبية)');
-}
-
-function loadTopProducts() {
-    console.log('🏆 تحميل أفضل المنتجات (وظيفة تجريبية)');
-}
-
-function viewOrder(orderId) {
-    console.log('👁️ عرض الطلب:', orderId);
-    showNotification('عرض تفاصيل الطلب (وظيفة تجريبية)');
-}
-
-function viewCustomer(phone) {
-    console.log('👤 عرض العميل:', phone);
-    showNotification('عرض تفاصيل العميل (وظيفة تجريبية)');
-}
-
-function editDiscountCode(code) {
-    console.log('✏️ تعديل كود الخصم:', code);
-    showNotification('تعديل كود الخصم (وظيفة تجريبية)');
-}
-
-function deleteDiscountCode(code) {
-    if (confirm('هل تريد حذف كود الخصم؟')) {
-        console.log('🗑️ حذف كود الخصم:', code);
-        showNotification('تم حذف كود الخصم (وظيفة تجريبية)');
+    
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterProducts);
     }
+    
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterProducts);
+    }
+    
+    console.log('✅ تم إعداد جميع الأحداث');
 }
 
-// 1. تحقق من بيانات localStorage
-console.log('products:', JSON.parse(localStorage.getItem('products')));
-console.log('orders:', JSON.parse(localStorage.getItem('orders')));
+/**
+ * فلترة المنتجات
+ */
+function filterProducts() {
+    const search = document.getElementById('productSearch').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    let filtered = adminProducts;
+    
+    // فلترة حسب البحث
+    if (search) {
+        filtered = filtered.filter(p => 
+            p.name.toLowerCase().includes(search) || 
+            p.description.toLowerCase().includes(search)
+        );
+    }
+    
+    // فلترة حسب الفئة
+    if (category !== 'all') {
+        filtered = filtered.filter(p => p.category === category);
+    }
+    
+    // فلترة حسب الحالة
+    if (status !== 'all') {
+        if (status === 'available') {
+            filtered = filtered.filter(p => p.inStock);
+        } else if (status === 'unavailable') {
+            filtered = filtered.filter(p => !p.inStock);
+        }
+    }
+    
+    // تحديث العرض
+    const tbody = document.getElementById('productsTableBody');
+    if (!tbody) return;
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-table">
+                    <i class="fas fa-search"></i>
+                    لا توجد نتائج
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = filtered.map(product => `
+        <tr>
+            <td>
+                <img src="${product.image || 'images/default.png'}" 
+                     class="product-image" 
+                     alt="${product.name}"
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"
+                     onerror="this.src='https://via.placeholder.com/50x50/2d5af1/FFFFFF?text=${product.name.substring(0, 5)}'">
+            </td>
+            <td><strong>${product.name}</strong></td>
+            <td>${product.category}</td>
+            <td>${product.price} ر.س</td>
+            <td>${product.inStock ? 'نعم' : 'لا'}</td>
+            <td>
+                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
+                    ${product.inStock ? 'متوفر' : 'غير متوفر'}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
 
-// 2. تحقق من الدخول
-console.log('admin_logged_in:', sessionStorage.getItem('admin_logged_in'));
-
-// 3. تحقق من الملفات
-console.log('تم تحميل admin-script.js:', typeof startAdminPanel);
+// ==================== جعل الدوال متاحة عالمياً ====================
+window.editAdminProduct = editAdminProduct;
+window.deleteAdminProduct = deleteAdminProduct;
+window.viewOrderDetails = viewOrderDetails;
+window.editOrderStatus = editOrderStatus;
+window.viewCustomerDetails = viewCustomerDetails;
+window.logout = logout;
