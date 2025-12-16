@@ -661,7 +661,7 @@ let products = [
   📅 *التاريخ:* ${orderDetails.date}
   🆔 *رقم الطلب:* #${orderDetails.id.toString().slice(-6)}`;
   
-      const whatsappLink = `https://wa.me/+967 781 238 648?text=${encodeURIComponent(message)}`;
+      const whatsappLink = `https://wa.me/781 238 648?text=${encodeURIComponent(message)}`;
       window.open(whatsappLink, '_blank');
   }
   
@@ -1037,4 +1037,5 @@ let products = [
   });
 
   
+
 
