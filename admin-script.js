@@ -602,7 +602,7 @@ function filterProductsTable() {
     tbody.innerHTML = filteredProducts.map(product => `
         <tr>
             <td>
-                <img src="${product.image || 'images/default.png'}" alt="${product.name}" class="product-image"
+                <img src="${product.image || 'default.png'}" alt="${product.name}" class="product-image"
                      onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=${encodeURIComponent(product.name.substring(0, 5))}'">
             </td>
             <td><strong>${product.name}</strong></td>
@@ -821,3 +821,4 @@ adminStyle.textContent = `
 `;
 
 document.head.appendChild(adminStyle);
+
