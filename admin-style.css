@@ -1040,3 +1040,30 @@ body::before {
         transform: translateX(0);
     }
 }
+/* ==================== CSS إضافي ==================== */
+
+/* زر تغيير كلمة المرور */
+.change-password-item a:hover {
+    background-color: #fff5f0 !important;
+    border-right: 3px solid #ff6b35 !important;
+}
+
+.change-password-item a i {
+    color: #ff6b35 !important;
+}
+
+.change-password-item a span {
+    color: #ff6b35 !important;
+    font-weight: 600 !important;
+}
+
+/* رسائل الإشعار */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+}
