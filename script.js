@@ -146,19 +146,40 @@ let products = [
       console.log('✅ متجر تقني - تم التحميل بنجاح!');
       console.log('👨‍💻 المطور: مجيب العباب');
       
+      // ========== الحل: حفظ المنتجات في localStorage أولاً ==========
+      console.log('💾 حفظ المنتجات في localStorage...');
+      
+      // 1. تحقق من المنتجات الموجودة
+      const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+      console.log(`📦 المنتجات في localStorage: ${storedProducts.length}`);
+      
+      // 2. إذا لم تكن موجودة، احفظ المنتجات الحالية
+      if (storedProducts.length === 0) {
+          console.log('✅ حفظ المنتجات لأول مرة');
+          localStorage.setItem('products', JSON.stringify(products));
+          localStorage.setItem('products_last_update', Date.now());
+      } else {
+          console.log('📥 استخدام المنتجات من localStorage');
+          products = storedProducts; // استخدام المنتجات المحفوظة
+      }
+      
+      // ========== باقي التهيئة ==========
       displayProducts(products);
       updateCartUI();
       setupEventListeners();
       
-      // تحميل الوضع الداكن من الذاكرة
+      // تحميل الوضع الداكن
       if (localStorage.getItem('theme') === 'dark') {
           document.body.classList.add('dark-mode');
           themeToggle.querySelector('i').classList.replace('fa-moon', 'fa-sun');
       }
       
-      console.log(`📦 تم تحميل ${products.length} منتج`);
-      console.log(`🛒 عناصر السلة: ${cart.length}`);
-      console.log(`📋 عدد الطلبات السابقة: ${orders.length}`);
+      console.log(`📦 المنتجات النهائية: ${products.length}`);
+      console.log(`🛒 السلة: ${cart.length} عنصر`);
+      console.log(`📋 الطلبات: ${orders.length}`);
+      
+      // فحص التحديثات من لوحة التحكم
+      setTimeout(checkForAdminProductUpdates, 2000);
   });
   
   // ==================== قسم 5: عرض المنتجات ====================
@@ -1233,41 +1254,6 @@ function showProductUpdateNotification() {
 }
 
 // ==================== قسم 16: التهيئة النهائية ====================
-// تعديل تهيئة المتجر لتحميل المنتجات من localStorage
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ متجر تقني - تم التحميل بنجاح!');
-    console.log('👨‍💻 المطور: مجيب العباب');
-    
-    // 1. أولاً: تحميل المنتجات من localStorage
-    loadProductsFromLocalStorage();
-    
-    // 2. عرض المنتجات
-    displayProducts(products);
-    
-    // 3. تحديث السلة
-    updateCartUI();
-    
-    // 4. إعداد الأحداث
-    setupEventListeners();
-    
-    // 5. تحميل الوضع الداكن من الذاكرة
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        themeToggle.querySelector('i').classList.replace('fa-moon', 'fa-sun');
-    }
-    
-    console.log(`📦 تم تحميل ${products.length} منتج`);
-    console.log(`🛒 عناصر السلة: ${cart.length}`);
-    console.log(`📋 عدد الطلبات السابقة: ${orders.length}`);
-    
-    // 6. التحقق من تحديثات المنتجات
-    setTimeout(checkForAdminProductUpdates, 2000);
-    
-    // 7. فحص التحديثات كل 30 ثانية
-    setInterval(checkForAdminProductUpdates, 30000);
-});
-
-// ==================== قسم 17: حماية متقدمة ====================
 // جعل الدوال متاحة عالمياً للوحة التحكم
 window.refreshProductsFromAdmin = refreshProductsFromAdmin;
 window.showProductUpdateNotification = showProductUpdateNotification;
@@ -1288,27 +1274,7 @@ if (typeof window !== 'undefined') {
 window.addEventListener('beforeunload', function() {
     syncProductsToLocalStorage();
 });
+
+// فحص التحديثات كل 30 ثانية
+setInterval(checkForAdminProductUpdates, 30000);
   });
-
-  // ========== حفظ المنتجات في localStorage عند تحميل المتجر ==========
-window.addEventListener('load', function() {
-    console.log('💾 حفظ المنتجات في localStorage...');
-    
-    // تحقق إذا كانت المنتجات موجودة في localStorage
-    const storedProducts = localStorage.getItem('products');
-    
-    // إذا لم تكن موجودة، احفظها
-    if (!storedProducts || storedProducts === '[]' || storedProducts === 'null') {
-        console.log('✅ حفظ المنتجات في localStorage لأول مرة');
-        localStorage.setItem('products', JSON.stringify(products));
-        localStorage.setItem('products_last_update', Date.now());
-    }
-    
-    console.log('📦 المنتجات جاهزة للوحة التحكم');
-});
-
-
-
-
-
-
