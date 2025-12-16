@@ -119,10 +119,25 @@ let products = [
       "featured": false
     }
   ];
-  if (!localStorage.getItem('products') || JSON.parse(localStorage.getItem('products')).length === 0) {
-    localStorage.setItem('products', JSON.stringify(products));
-    console.log('💾 تم حفظ المنتجات في localStorage');
-}
+  // ==================== حفظ تلقائي للمنتجات في localStorage ====================
+(function() {
+    console.log('🔍 فحص منتجات المتجر...');
+    
+    // تحميل المنتجات الحالية من localStorage
+    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+    console.log(`📦 المنتجات في localStorage: ${storedProducts.length}`);
+    
+    // إذا كانت فارغة، احفظ المنتجات الحالية
+    if (storedProducts.length === 0) {
+        console.log('💾 حفظ المنتجات في localStorage...');
+        localStorage.setItem('products', JSON.stringify(products));
+        console.log(`✅ تم حفظ ${products.length} منتج في localStorage`);
+    } else {
+        console.log('✅ المنتجات موجودة في localStorage');
+        // يمكنك تحديث متغير products بالمنتجات المخزنة إذا أردت
+        // products = storedProducts;
+    }
+})();
   // ==================== قسم 2: المتغيرات العامة ====================
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
   let orders = JSON.parse(localStorage.getItem('orders')) || [];
@@ -1299,4 +1314,5 @@ function backupProducts() {
 
 // استدعاء النسخ الاحتياطي كل 30 دقيقة
 setInterval(backupProducts, 1800000);
+
 
