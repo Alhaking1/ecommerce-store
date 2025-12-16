@@ -781,3 +781,13 @@ function deleteDiscountCode(code) {
         showNotification('تم حذف كود الخصم (وظيفة تجريبية)');
     }
 }
+
+// 1. تحقق من بيانات localStorage
+console.log('products:', JSON.parse(localStorage.getItem('products')));
+console.log('orders:', JSON.parse(localStorage.getItem('orders')));
+
+// 2. تحقق من الدخول
+console.log('admin_logged_in:', sessionStorage.getItem('admin_logged_in'));
+
+// 3. تحقق من الملفات
+console.log('تم تحميل admin-script.js:', typeof startAdminPanel);
