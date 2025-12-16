@@ -8,6 +8,123 @@
     <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ==================== تجاوب لوحة التحكم للهواتف ==================== */
+        /* زر القائمة للهواتف */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #2d5af1;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(45, 90, 241, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .sidebar-toggle:hover {
+            background: #1a47c9;
+        }
+        
+        /* تعديلات للهواتف */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 280px;
+                right: -280px;
+                transition: right 0.3s ease;
+                z-index: 1999;
+            }
+            
+            .admin-sidebar.active {
+                right: 0;
+            }
+            
+            .admin-content {
+                margin-right: 0;
+                width: 100%;
+                padding: 20px 15px;
+            }
+            
+            .sidebar-toggle {
+                display: flex;
+            }
+            
+            /* إخفاء الاسم في الهواتف */
+            .user-name {
+                display: none;
+            }
+            
+            /* تحسين الجداول للهواتف */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+            
+            /* تعديل بطاقات الإحصائيات */
+            .stats-cards {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            /* تعديل فلتر المنتجات */
+            .products-filter {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .products-filter input,
+            .products-filter select {
+                width: 100%;
+            }
+            
+            /* تعديل النوافذ المنبثقة */
+            .modal {
+                width: 95%;
+                max-width: 95%;
+                margin: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .admin-nav-container {
+                padding: 0 10px;
+            }
+            
+            .admin-logo span {
+                font-size: 1.2rem;
+            }
+            
+            .content-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .action-buttons {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
 </head>
 <body class="admin-body">
     <!-- شريط التنقل العلوي -->
@@ -25,6 +142,11 @@
             </div>
         </div>
     </nav>
+
+    <!-- زر القائمة للهواتف -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <!-- القائمة الجانبية -->
     <aside class="admin-sidebar">
@@ -470,5 +592,61 @@
     <!-- ربط ملفات JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="admin-script.js"></script>
+    <script>
+        // التحكم في القائمة الجانبية للهواتف
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.admin-sidebar');
+            
+            // التحقق من حجم الشاشة
+            function checkScreenSize() {
+                if (window.innerWidth <= 768) {
+                    sidebarToggle.style.display = 'flex';
+                    sidebar.classList.remove('active');
+                } else {
+                    sidebarToggle.style.display = 'none';
+                    sidebar.classList.add('active');
+                }
+            }
+            
+            // التحقق عند التحميل وعند تغيير حجم النافذة
+            checkScreenSize();
+            window.addEventListener('resize', checkScreenSize);
+            
+            // حدث فتح/إغلاق القائمة
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    this.innerHTML = sidebar.classList.contains('active') 
+                        ? '<i class="fas fa-times"></i>' 
+                        : '<i class="fas fa-bars"></i>';
+                });
+            }
+            
+            // إغلاق القائمة عند النقر على رابط في القائمة (للهواتف فقط)
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('active');
+                        if (sidebarToggle) {
+                            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                        }
+                    }
+                });
+            });
+            
+            // إغلاق القائمة عند النقر خارجها (للهواتف فقط)
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768 && 
+                    sidebar.classList.contains('active') &&
+                    !sidebar.contains(event.target) && 
+                    event.target !== sidebarToggle &&
+                    !sidebarToggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                    sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
