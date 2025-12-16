@@ -1278,3 +1278,21 @@ window.addEventListener('beforeunload', function() {
 // فحص التحديثات كل 30 ثانية
 setInterval(checkForAdminProductUpdates, 30000);
   });
+// حماية البيانات من الضياع
+function backupProducts() {
+    const productsBackup = JSON.parse(localStorage.getItem('products_backup')) || [];
+    const currentProducts = JSON.parse(localStorage.getItem('products')) || [];
+    
+    // عمل نسخة احتياطية كل ساعة
+    const lastBackup = localStorage.getItem('last_backup');
+    const now = Date.now();
+    
+    if (!lastBackup || (now - lastBackup) > 3600000) {
+        localStorage.setItem('products_backup', JSON.stringify(currentProducts));
+        localStorage.setItem('last_backup', now);
+        console.log('💾 تم عمل نسخة احتياطية من المنتجات');
+    }
+}
+
+// استدعاء النسخ الاحتياطي كل 30 دقيقة
+setInterval(backupProducts, 1800000);
