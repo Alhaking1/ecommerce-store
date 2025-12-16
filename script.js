@@ -119,7 +119,10 @@ let products = [
       "featured": false
     }
   ];
-  
+  if (!localStorage.getItem('products') || JSON.parse(localStorage.getItem('products')).length === 0) {
+    localStorage.setItem('products', JSON.stringify(products));
+    console.log('💾 تم حفظ المنتجات في localStorage');
+}
   // ==================== قسم 2: المتغيرات العامة ====================
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
   let orders = JSON.parse(localStorage.getItem('orders')) || [];
@@ -1296,3 +1299,4 @@ function backupProducts() {
 
 // استدعاء النسخ الاحتياطي كل 30 دقيقة
 setInterval(backupProducts, 1800000);
+
