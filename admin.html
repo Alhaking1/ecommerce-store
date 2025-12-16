@@ -593,60 +593,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="admin-script.js"></script>
     <script>
-        // التحكم في القائمة الجانبية للهواتف
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.querySelector('.admin-sidebar');
-            
-            // التحقق من حجم الشاشة
-            function checkScreenSize() {
-                if (window.innerWidth <= 768) {
-                    sidebarToggle.style.display = 'flex';
-                    sidebar.classList.remove('active');
-                } else {
-                    sidebarToggle.style.display = 'none';
-                    sidebar.classList.add('active');
-                }
-            }
-            
-            // التحقق عند التحميل وعند تغيير حجم النافذة
-            checkScreenSize();
-            window.addEventListener('resize', checkScreenSize);
-            
-            // حدث فتح/إغلاق القائمة
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('active');
-                    this.innerHTML = sidebar.classList.contains('active') 
-                        ? '<i class="fas fa-times"></i>' 
-                        : '<i class="fas fa-bars"></i>';
-                });
-            }
-            
-            // إغلاق القائمة عند النقر على رابط في القائمة (للهواتف فقط)
-            document.querySelectorAll('.sidebar-menu a').forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.remove('active');
-                        if (sidebarToggle) {
-                            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                        }
-                    }
-                });
-            });
-            
-            // إغلاق القائمة عند النقر خارجها (للهواتف فقط)
-            document.addEventListener('click', function(event) {
-                if (window.innerWidth <= 768 && 
-                    sidebar.classList.contains('active') &&
-                    !sidebar.contains(event.target) && 
-                    event.target !== sidebarToggle &&
-                    !sidebarToggle.contains(event.target)) {
-                    sidebar.classList.remove('active');
-                    sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                }
-            });
-        });
+        // تم إزالة الكود المتعارض هنا
+        // جميع أحداث القائمة الآن موجودة في admin-script.js فقط
     </script>
 </body>
 </html>
