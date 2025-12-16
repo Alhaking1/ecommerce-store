@@ -720,5 +720,134 @@
         // تم إزالة الكود المتعارض هنا
         // جميع أحداث القائمة الآن موجودة في admin-script.js فقط
     </script>
+    <script>
+// حل فوري لتحميل البيانات
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM محمل - بدء النظام...');
+    
+    // التحقق من الدخول
+    if (!sessionStorage.getItem('admin_logged_in')) {
+        console.log('❌ غير مسجل دخول - توجيه إلى صفحة الدخول');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    console.log('✅ مسجل دخول - بدء التحميل...');
+    
+    // إخفاء شاشة التحميل بعد 1.5 ثانية
+    setTimeout(function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+            console.log('✅ تم إخفاء شاشة التحميل');
+        }
+        
+        // تحميل البيانات مباشرة
+        loadAdminData();
+    }, 1500);
+});
+
+// دالة تحميل البيانات مباشرة
+function loadAdminData() {
+    console.log('📊 جاري تحميل بيانات لوحة التحكم...');
+    
+    // 1. تحميل المنتجات
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+    console.log(`🛍️ عدد المنتجات: ${products.length}`);
+    
+    // إذا كان هناك جدول منتجات، عرضه
+    const productsBody = document.getElementById('productsTableBody');
+    if (productsBody) {
+        if (products.length > 0) {
+            productsBody.innerHTML = products.map(p => `
+                <tr>
+                    <td><img src="${p.image || 'images/default.png'}" class="product-image" alt="${p.name}"></td>
+                    <td><strong>${p.name}</strong></td>
+                    <td>${p.category}</td>
+                    <td>${p.price} ر.س</td>
+                    <td>${p.inStock ? 'نعم' : 'لا'}</td>
+                    <td><span class="status-badge ${p.inStock ? 'status-available' : 'status-unavailable'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span></td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            productsBody.innerHTML = '<tr><td colspan="7" class="empty-table">لا توجد منتجات</td></tr>';
+        }
+    }
+    
+    // 2. تحميل الطلبات
+    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+    console.log(`📦 عدد الطلبات: ${orders.length}`);
+    
+    // تحديث الإحصائيات
+    document.getElementById('totalOrders').textContent = orders.length;
+    document.getElementById('totalProducts').textContent = products.length;
+    document.getElementById('totalRevenue').textContent = orders.reduce((sum, order) => sum + (order.total || 0), 0).toFixed(2) + ' ر.س';
+    
+    // حساب العملاء
+    const customersMap = new Map();
+    orders.forEach(order => {
+        if (order.customer && order.customer.phone) {
+            customersMap.set(order.customer.phone, order.customer);
+        }
+    });
+    document.getElementById('totalCustomers').textContent = customersMap.size;
+    
+    console.log('✅ تم تحميل جميع البيانات بنجاح');
+    
+    // تفعيل القائمة
+    setTimeout(() => {
+        document.querySelectorAll('.sidebar-menu li').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                console.log(`🎯 تفعيل التبويب: ${tabId}`);
+                
+                // إخفاء جميع المحتويات
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.style.display = 'none';
+                });
+                
+                // إزالة النشاط من القائمة
+                document.querySelectorAll('.sidebar-menu li').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // إضافة النشاط للعنصر الحالي
+                this.classList.add('active');
+                
+                // إظهار المحتوى المحدد
+                const activeTab = document.getElementById(tabId);
+                if (activeTab) {
+                    activeTab.style.display = 'block';
+                }
+            });
+        });
+        
+        // تفعيل التبويب الأول
+        document.querySelector('.sidebar-menu li[data-tab="dashboard"]').click();
+    }, 100);
+}
+
+// دوال المساعدة (إذا لم تكن موجودة في admin-script.js)
+function editProduct(id) {
+    console.log('✏️ تعديل المنتج:', id);
+    alert('وظيفة تعديل المنتج: ' + id);
+}
+
+function deleteProduct(id) {
+    if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+        console.log('🗑️ حذف المنتج:', id);
+        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const filtered = products.filter(p => p.id != id);
+        localStorage.setItem('products', JSON.stringify(filtered));
+        loadAdminData(); // إعادة تحميل البيانات
+        alert('تم حذف المنتج بنجاح');
+    }
+}
+</script>
 </body>
 </html>
+
