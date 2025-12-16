@@ -33,29 +33,6 @@
     <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-</head>
-<body class="admin-body">
-    <!-- شاشة التحميل -->
-    <div id="loading-screen">
-        <i class="fas fa-circle-notch fa-spin"></i>
-        <p>جاري تحميل لوحة التحكم...</p>
-    </div>
-    
-    <!-- باقي محتوى الصفحة يبقى مخفياً -->
-    <nav class="admin-navbar" style="display:none;">
-        <!-- ... -->
-    </nav>
-    
-    <!-- ... باقي HTML -->
-    <!-- باقي الكود كما هو... -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المتجر | مجيب العباب</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin-style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="login-style.css">
     <style>
         /* ==================== تجاوب لوحة التحكم للهواتف ==================== */
         /* زر القائمة للهواتف */
@@ -173,86 +150,16 @@
             }
         }
     </style>
-    
-    <style>
-        /* ==================== إضافات نظام الدخول ==================== */
-        .btn-change-password:hover {
-            background-color: #f0f7ff !important;
-            color: #1a47c9 !important;
-        }
-
-        /* رسالة الخطأ */
-        .error-message {
-            background-color: #fee;
-            color: #dc3545;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #f5c6cb;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* المؤشر الجانبي */
-        .sidebar-menu li a.warning {
-            color: #ff6b35;
-        }
-
-        .sidebar-menu li a.warning:hover {
-            background-color: #fff5f0;
-            color: #ff6b35;
-        }
-
-        /* حماية الصفحة */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(45, 90, 241, 0.03);
-            z-index: -1;
-        }
-
-        /* مؤشر الأمان */
-        .security-indicator {
-            position: fixed;
-            top: 80px;
-            left: 20px;
-            background: #28a745;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 1000;
-            box-shadow: 0 3px 10px rgba(40, 167, 69, 0.2);
-            animation: slideInRight 0.5s ease;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-    </style>
 </head>
 <body class="admin-body">
+    <!-- شاشة التحميل -->
+    <div id="loading-screen">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <p>جاري تحميل لوحة التحكم...</p>
+    </div>
+
     <!-- شريط التنقل العلوي -->
-    <nav class="admin-navbar">
+    <nav class="admin-navbar" style="display:none;">
         <div class="admin-nav-container">
             <div class="admin-logo">
                 <i class="fas fa-cogs"></i>
@@ -717,22 +624,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="admin-script.js"></script>
     <script>
-        // تم إزالة الكود المتعارض هنا
-        // جميع أحداث القائمة الآن موجودة في admin-script.js فقط
-    </script>
-    <script>
-// حل فوري لتحميل البيانات
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM محمل - بدء النظام...');
+// كود تحميل وإدارة لوحة التحكم - إصدار موحد
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 بدء تحميل لوحة التحكم...');
     
-    // التحقق من الدخول
+    // التحقق من تسجيل الدخول
     if (!sessionStorage.getItem('admin_logged_in')) {
-        console.log('❌ غير مسجل دخول - توجيه إلى صفحة الدخول');
+        console.log('❌ غير مسجل دخول - توجيه إلى login.html');
         window.location.href = 'login.html';
         return;
     }
     
-    console.log('✅ مسجل دخول - بدء التحميل...');
+    console.log('✅ مسجل دخول بنجاح');
     
     // إخفاء شاشة التحميل بعد 1.5 ثانية
     setTimeout(function() {
@@ -742,52 +645,94 @@ window.addEventListener('DOMContentLoaded', function() {
             console.log('✅ تم إخفاء شاشة التحميل');
         }
         
-        // تحميل البيانات مباشرة
+        // إظهار شريط التنقل
+        const navbar = document.querySelector('.admin-navbar');
+        if (navbar) {
+            navbar.style.display = 'flex';
+        }
+        
+        // تحميل وعرض البيانات
         loadAdminData();
+        
+        // تفعيل نظام القوائم
+        setupAdminTabs();
     }, 1500);
 });
 
-// دالة تحميل البيانات مباشرة
+// دالة تحميل وعرض البيانات
 function loadAdminData() {
-    console.log('📊 جاري تحميل بيانات لوحة التحكم...');
+    console.log('📊 جاري تحميل البيانات...');
     
-    // 1. تحميل المنتجات
+    // 1. تحميل المنتجات من localStorage
     const products = JSON.parse(localStorage.getItem('products')) || [];
-    console.log(`🛍️ عدد المنتجات: ${products.length}`);
+    console.log(`📦 عدد المنتجات: ${products.length}`);
     
-    // إذا كان هناك جدول منتجات، عرضه
+    // عرض المنتجات في الجدول
     const productsBody = document.getElementById('productsTableBody');
     if (productsBody) {
         if (products.length > 0) {
-            productsBody.innerHTML = products.map(p => `
+            productsBody.innerHTML = products.map(product => `
                 <tr>
-                    <td><img src="${p.image || 'images/default.png'}" class="product-image" alt="${p.name}"></td>
-                    <td><strong>${p.name}</strong></td>
-                    <td>${p.category}</td>
-                    <td>${p.price} ر.س</td>
-                    <td>${p.inStock ? 'نعم' : 'لا'}</td>
-                    <td><span class="status-badge ${p.inStock ? 'status-available' : 'status-unavailable'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span></td>
                     <td>
-                        <button class="btn-action btn-edit" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-action btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+                        <img src="${product.image || 'images/default.png'}" 
+                             class="product-image" 
+                             alt="${product.name}"
+                             onerror="this.src='https://via.placeholder.com/50x50/2d5af1/FFFFFF?text=${product.name.substring(0, 5)}'">
+                    </td>
+                    <td><strong>${product.name}</strong></td>
+                    <td>${product.category}</td>
+                    <td>${product.price} ر.س</td>
+                    <td>${product.inStock ? 'نعم' : 'لا'}</td>
+                    <td>
+                        <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
+                            ${product.inStock ? 'متوفر' : 'غير متوفر'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editAdminProduct(${product.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deleteAdminProduct(${product.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
             `).join('');
         } else {
-            productsBody.innerHTML = '<tr><td colspan="7" class="empty-table">لا توجد منتجات</td></tr>';
+            productsBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-table">
+                        <i class="fas fa-box-open"></i>
+                        لا توجد منتجات
+                    </td>
+                </tr>
+            `;
         }
     }
     
-    // 2. تحميل الطلبات
+    // 2. تحميل الطلبات من localStorage
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     console.log(`📦 عدد الطلبات: ${orders.length}`);
     
-    // تحديث الإحصائيات
-    document.getElementById('totalOrders').textContent = orders.length;
-    document.getElementById('totalProducts').textContent = products.length;
-    document.getElementById('totalRevenue').textContent = orders.reduce((sum, order) => sum + (order.total || 0), 0).toFixed(2) + ' ر.س';
+    // 3. تحديث الإحصائيات
+    updateAdminStats(products, orders);
     
-    // حساب العملاء
+    console.log('✅ تم تحميل جميع البيانات بنجاح');
+}
+
+// دالة تحديث الإحصائيات
+function updateAdminStats(products, orders) {
+    // تحديث عدد المنتجات
+    document.getElementById('totalProducts').textContent = products.length;
+    
+    // تحديث عدد الطلبات
+    document.getElementById('totalOrders').textContent = orders.length;
+    
+    // تحديث الإيرادات
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2) + ' ر.س';
+    
+    // تحديث عدد العملاء
     const customersMap = new Map();
     orders.forEach(order => {
         if (order.customer && order.customer.phone) {
@@ -796,110 +741,79 @@ function loadAdminData() {
     });
     document.getElementById('totalCustomers').textContent = customersMap.size;
     
-    console.log('✅ تم تحميل جميع البيانات بنجاح');
+    console.log(`💰 الإيرادات: ${totalRevenue} ر.س`);
+    console.log(`👥 العملاء: ${customersMap.size}`);
+}
+
+// دالة تفعيل نظام التبويبات
+function setupAdminTabs() {
+    const menuItems = document.querySelectorAll('.sidebar-menu li');
+    const tabContents = document.querySelectorAll('.tab-content');
     
-    // تفعيل القائمة
-    setTimeout(() => {
-        document.querySelectorAll('.sidebar-menu li').forEach(item => {
-            item.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
-                console.log(`🎯 تفعيل التبويب: ${tabId}`);
-                
-                // إخفاء جميع المحتويات
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.style.display = 'none';
-                });
-                
-                // إزالة النشاط من القائمة
-                document.querySelectorAll('.sidebar-menu li').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                // إضافة النشاط للعنصر الحالي
-                this.classList.add('active');
-                
-                // إظهار المحتوى المحدد
-                const activeTab = document.getElementById(tabId);
-                if (activeTab) {
-                    activeTab.style.display = 'block';
-                }
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // إزالة النشاط من جميع العناصر
+            menuItems.forEach(i => i.classList.remove('active'));
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none';
             });
+            
+            // إضافة النشاط للعنصر الحالي
+            this.classList.add('active');
+            
+            // إظهار المحتوى المحدد
+            const activeTab = document.getElementById(tabId);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                activeTab.style.display = 'block';
+            }
+            
+            console.log(`🎯 تم تفعيل التبويب: ${tabId}`);
         });
-        
-        // تفعيل التبويب الأول
-        document.querySelector('.sidebar-menu li[data-tab="dashboard"]').click();
-    }, 100);
+    });
+    
+    // تفعيل التبويب الأول
+    const firstTab = document.querySelector('.sidebar-menu li.active');
+    if (firstTab) {
+        firstTab.click();
+    }
 }
 
-// دوال المساعدة (إذا لم تكن موجودة في admin-script.js)
-function editProduct(id) {
+// دوال إدارة المنتجات
+function editAdminProduct(id) {
     console.log('✏️ تعديل المنتج:', id);
-    alert('وظيفة تعديل المنتج: ' + id);
+    alert(`سيتم تعديل المنتج رقم ${id}\nهذه الوظيفة تحتاج إلى تنفيذ في admin-script.js`);
 }
 
-function deleteProduct(id) {
+function deleteAdminProduct(id) {
     if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
         console.log('🗑️ حذف المنتج:', id);
+        
         const products = JSON.parse(localStorage.getItem('products')) || [];
-        const filtered = products.filter(p => p.id != id);
-        localStorage.setItem('products', JSON.stringify(filtered));
-        loadAdminData(); // إعادة تحميل البيانات
-        alert('تم حذف المنتج بنجاح');
+        const updatedProducts = products.filter(p => p.id != id);
+        
+        localStorage.setItem('products', JSON.stringify(updatedProducts));
+        
+        // إعادة تحميل البيانات
+        loadAdminData();
+        
+        alert('✅ تم حذف المنتج بنجاح');
     }
 }
-</script>
-    <script>
-// حل فوري للمشكلة
-window.addEventListener('load', function() {
-    console.log('🔧 بدء الإصلاح الفوري...');
-    
-    // 1. تحميل المنتجات من localStorage
-    let products = JSON.parse(localStorage.getItem('products')) || [];
-    console.log(`📦 المنتجات في localStorage: ${products.length}`);
-    
-    // 2. إذا لم توجد، استخدم المنتجات من script.js
-    if (products.length === 0) {
-        console.log('⚠️ لا توجد منتجات، جلب المنتجات الافتراضية...');
-        // حاول الحصول على المنتجات من المتجر الرئيسي
-        try {
-            if (window.products && window.products.length > 0) {
-                products = window.products;
-                localStorage.setItem('products', JSON.stringify(products));
-                console.log(`✅ تم حفظ ${products.length} منتج في localStorage`);
-            }
-        } catch(e) {
-            console.log('❌ لا يمكن الوصول إلى منتجات المتجر');
+
+// تهيئة زر القائمة للهواتف
+const sidebarToggle = document.getElementById('sidebarToggle');
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', function() {
+        const sidebar = document.querySelector('.admin-sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('active');
         }
-    }
-    
-    // 3. عرض المنتجات في الجدول
-    const tbody = document.getElementById('productsTableBody');
-    if (tbody && products.length > 0) {
-        tbody.innerHTML = products.map(p => `
-            <tr>
-                <td><img src="${p.image || 'default.png'}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;"></td>
-                <td><strong>${p.name}</strong></td>
-                <td>${p.category}</td>
-                <td>${p.price} ر.س</td>
-                <td>${p.inStock ? 'نعم' : 'لا'}</td>
-                <td><span style="padding:5px 10px;border-radius:5px;background:${p.inStock ? '#e6f4ea' : '#fde7e9'};color:${p.inStock ? '#28a745' : '#dc3545'};">${p.inStock ? 'متوفر' : 'غير متوفر'}</span></td>
-                <td>
-                    <button style="width:35px;height:35px;border-radius:50%;border:none;background:#28a745;color:white;cursor:pointer;margin:2px;" onclick="alert('تعديل المنتج ${p.id}')"><i class="fas fa-edit"></i></button>
-                    <button style="width:35px;height:35px;border-radius:50%;border:none;background:#dc3545;color:white;margin:2px;cursor:pointer;" onclick="alert('حذف المنتج ${p.id}')"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `).join('');
-        
-        console.log(`✅ تم عرض ${products.length} منتج في لوحة التحكم`);
-    }
-    
-    // 4. إخفاء شاشة التحميل
-    setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-    }, 1000);
-});
-</script>
+    });
+}
+    </script>
 </body>
 </html>
-
-
