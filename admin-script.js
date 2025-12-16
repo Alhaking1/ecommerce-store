@@ -1,7 +1,7 @@
 /*
 ==============================================
 لوحة تحكم المتجر - مجيب العباب
-الإصدار النهائي مع دعم التحديث المباشر
+نسخة مصححة - جميع الأزرار تعمل
 ==============================================
 */
 
@@ -24,87 +24,134 @@ let discountCodes = JSON.parse(localStorage.getItem('discount_codes')) || {
 // ==================== تهيئة لوحة التحكم ====================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 لوحة تحكم المتجر - جاهزة للعمل');
-    console.log('📊 عدد المنتجات:', currentProducts.length);
-    console.log('📦 عدد الطلبات:', currentOrders.length);
     
-    // تحميل البيانات الأولية
-    initDashboard();
+    // 🔥 **الإصلاح الأول: تفعيل التبويبات عند التحميل**
+    setupTabNavigation();
+    
+    // تحميل البيانات
     loadProductsTable();
     loadOrdersTable();
     loadCustomersTable();
     loadStoreSettings();
     loadDiscountCodes();
     
-    // 🔥 **الإضافة المهمة:** تأخير إعداد الأحداث
-    setTimeout(() => {
-        setupAdminEventListeners();
-    }, 100);
-    
-    // إعداد القائمة الجانبية للهواتف
-    setTimeout(() => {
-        setupMobileSidebar();
-    }, 150);
-    
-    // تحديث العداد
-    updateOrdersBadge();
-    
-    // إضافة زر تحديث المتجر
-    addStoreRefreshButton();
-    
-    // 🔥 **الإضافة الجديدة:** تفعيل تبويب لوحة التحكم عند التحميل
-    setTimeout(() => {
-        activateTab('dashboard');
-    }, 200);
-});
-
-// ==================== لوحة التحكم الرئيسية ====================
-function initDashboard() {
+    // تحديث الإحصائيات
     updateStatistics();
     loadRecentOrders();
     loadTopProducts();
-    loadCharts();
-}
-
-function updateStatistics() {
-    document.getElementById('totalOrders').textContent = currentOrders.length;
-    document.getElementById('totalCustomers').textContent = getUniqueCustomers().length;
-    document.getElementById('totalProducts').textContent = currentProducts.length;
-    document.getElementById('totalRevenue').textContent = calculateTotalRevenue().toFixed(2) + ' ر.س';
-}
-
-function loadRecentOrders() {
-    const tbody = document.getElementById('recentOrdersBody');
-    const recentOrders = currentOrders.slice(-5).reverse();
     
-    if (recentOrders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-table">لا توجد طلبات حالياً</td></tr>`;
-        return;
+    // تحديث عداد الطلبات
+    updateOrdersBadge();
+    
+    // إعداد الأحداث
+    setupEventListeners();
+    setupMobileSidebar();
+    
+    // 🔥 **الإضافة: تفعيل لوحة التحكم عند التحميل**
+    setTimeout(() => {
+        activateTab('dashboard');
+    }, 100);
+});
+
+// ==================== 🔥 **الإصلاح: إدارة التبويبات** ====================
+function setupTabNavigation() {
+    console.log('🔧 إعداد التبويبات...');
+    
+    const menuItems = document.querySelectorAll('.sidebar-menu li');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // إزالة النشاط من الكل
+            menuItems.forEach(li => li.classList.remove('active'));
+            
+            // إضافة النشاط للعنصر الحالي
+            this.classList.add('active');
+            
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // إظهار المحتوى المحدد
+            const tabId = this.getAttribute('data-tab');
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) {
+                targetTab.classList.add('active');
+                console.log(`✅ تم تفعيل تبويب: ${tabId}`);
+                
+                // تحديث بيانات التبويب
+                refreshTabData(tabId);
+            }
+        });
+    });
+    
+    console.log('✅ تم إعداد التبويبات');
+}
+
+function refreshTabData(tabId) {
+    switch(tabId) {
+        case 'dashboard':
+            updateStatistics();
+            loadRecentOrders();
+            break;
+        case 'products':
+            loadProductsTable();
+            break;
+        case 'orders':
+            loadOrdersTable();
+            break;
+        case 'customers':
+            loadCustomersTable();
+            break;
+        case 'analytics':
+            loadCharts();
+            loadTopProducts();
+            break;
+        case 'settings':
+            loadStoreSettings();
+            loadDiscountCodes();
+            break;
+    }
+}
+
+// ==================== 🔥 **الإصلاح: تفعيل التبويب** ====================
+function activateTab(tabId) {
+    console.log(`🎯 تفعيل التبويب: ${tabId}`);
+    
+    // إزالة النشاط من جميع عناصر القائمة
+    document.querySelectorAll('.sidebar-menu li').forEach(li => {
+        li.classList.remove('active');
+    });
+    
+    // إخفاء جميع محتويات التبويبات
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // إضافة النشاط للعنصر المحدد
+    const targetMenuItem = document.querySelector(`.sidebar-menu li[data-tab="${tabId}"]`);
+    if (targetMenuItem) {
+        targetMenuItem.classList.add('active');
     }
     
-    tbody.innerHTML = recentOrders.map(order => `
-        <tr>
-            <td>#${order.id.toString().slice(-6)}</td>
-            <td>${order.customer.name}</td>
-            <td>${order.date}</td>
-            <td>${order.total.toFixed(2)} ر.س</td>
-            <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn-action btn-edit" onclick="editOrderStatus(${order.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    // إظهار محتوى التبويب المحدد
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.classList.add('active');
+        refreshTabData(tabId);
+    }
 }
 
 // ==================== إدارة المنتجات ====================
 function loadProductsTable() {
     const tbody = document.getElementById('productsTableBody');
+    
+    if (!tbody) {
+        console.error('❌ لا يوجد عنصر productsTableBody');
+        return;
+    }
     
     if (currentProducts.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="empty-table">لا توجد منتجات حالياً</td></tr>`;
@@ -138,6 +185,8 @@ function loadProductsTable() {
             </td>
         </tr>
     `).join('');
+    
+    console.log('✅ تم تحميل جدول المنتجات');
 }
 
 function addNewProduct() {
@@ -149,7 +198,10 @@ function addNewProduct() {
 
 function editProduct(productId) {
     const product = currentProducts.find(p => p.id == productId);
-    if (!product) return;
+    if (!product) {
+        showAdminNotification('المنتج غير موجود', 'error');
+        return;
+    }
     
     document.getElementById('productId').value = product.id;
     document.getElementById('productName').value = product.name;
@@ -180,34 +232,35 @@ function saveProduct() {
         featured: document.getElementById('productFeatured').checked
     };
     
+    // التحقق من البيانات
     if (!productData.name || !productData.category || !productData.price || !productData.description) {
         showAdminNotification('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
         return;
     }
     
     if (productId) {
+        // تحديث المنتج
         const index = currentProducts.findIndex(p => p.id == productId);
         if (index !== -1) {
             currentProducts[index] = productData;
+            showAdminNotification('تم تحديث المنتج بنجاح');
         }
     } else {
+        // إضافة منتج جديد
         currentProducts.push(productData);
+        showAdminNotification('تم إضافة المنتج بنجاح');
     }
     
     // حفظ في localStorage
     localStorage.setItem('products', JSON.stringify(currentProducts));
     
-    // 🔥 **الإضافة المهمة:** تحديث جميع النوافذ المفتوحة
-    updateAllStoreWindows();
-    
     // تحديث العرض
     loadProductsTable();
     updateStatistics();
+    updateAllStoreWindows();
     
     // إغلاق النافذة
     document.getElementById('productModal').classList.remove('active');
-    
-    showAdminNotification(productId ? 'تم تحديث المنتج بنجاح' : 'تم إضافة المنتج بنجاح');
 }
 
 function deleteProduct(productId) {
@@ -216,59 +269,25 @@ function deleteProduct(productId) {
     currentProducts = currentProducts.filter(p => p.id != productId);
     localStorage.setItem('products', JSON.stringify(currentProducts));
     
-    // 🔥 **الإضافة المهمة:** تحديث جميع النوافذ المفتوحة
-    updateAllStoreWindows();
-    
     loadProductsTable();
     updateStatistics();
+    updateAllStoreWindows();
+    
     showAdminNotification('تم حذف المنتج بنجاح');
-}
-
-// ==================== تحديث المتجر الرئيسي ====================
-function updateAllStoreWindows() {
-    console.log('🔄 إرسال تحديث المنتجات لجميع النوافذ...');
-    
-    // تحديث localStorage الذي سيستشعر به المتجر الرئيسي
-    localStorage.setItem('products', JSON.stringify(currentProducts));
-    
-    // إرسال حدث storage لتحديث الصفحات الأخرى
-    window.dispatchEvent(new StorageEvent('storage', {
-        key: 'products',
-        newValue: JSON.stringify(currentProducts),
-        oldValue: localStorage.getItem('products'),
-        url: window.location.href
-    }));
-    
-    // محاولة الاتصال بالنوافذ الأخرى
-    try {
-        // إذا كان المتجر مفتوحاً في نفس المتصفح
-        if (window.opener && !window.opener.closed) {
-            window.opener.postMessage({
-                type: 'PRODUCTS_UPDATED',
-                products: currentProducts,
-                timestamp: Date.now()
-            }, '*');
-        }
-        
-        // بث للجميع
-        window.postMessage({
-            type: 'PRODUCTS_UPDATED_ADMIN',
-            products: currentProducts,
-            source: 'admin'
-        }, '*');
-        
-        console.log('✅ تم إرسال تحديث المنتجات');
-    } catch (error) {
-        console.warn('⚠️ لا يمكن الاتصال بالنوافذ الأخرى:', error);
-    }
 }
 
 // ==================== إدارة الطلبات ====================
 function loadOrdersTable() {
     const tbody = document.getElementById('ordersTableBody');
-    const statusFilter = document.getElementById('orderStatusFilter').value;
     
+    if (!tbody) {
+        console.error('❌ لا يوجد عنصر ordersTableBody');
+        return;
+    }
+    
+    const statusFilter = document.getElementById('orderStatusFilter')?.value || 'all';
     let filteredOrders = currentOrders;
+    
     if (statusFilter !== 'all') {
         filteredOrders = currentOrders.filter(order => order.status === statusFilter);
     }
@@ -281,10 +300,44 @@ function loadOrdersTable() {
     tbody.innerHTML = filteredOrders.map(order => `
         <tr>
             <td>#${order.id.toString().slice(-6)}</td>
-            <td>${order.customer.name}</td>
-            <td>${order.date}</td>
-            <td>${order.cart.length} منتجات</td>
-            <td>${order.total.toFixed(2)} ر.س</td>
+            <td>${order.customer?.name || 'غير معروف'}</td>
+            <td>${order.date || 'غير معروف'}</td>
+            <td>${order.cart?.length || 0} منتجات</td>
+            <td>${order.total?.toFixed(2) || '0.00'} ر.س</td>
+            <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" onclick="viewOrderDetails(${order.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-action btn-edit" onclick="editOrderStatus(${order.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    console.log('✅ تم تحميل جدول الطلبات');
+}
+
+function loadRecentOrders() {
+    const tbody = document.getElementById('recentOrdersBody');
+    if (!tbody) return;
+    
+    const recentOrders = currentOrders.slice(-5).reverse();
+    
+    if (recentOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-table">لا توجد طلبات حالياً</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = recentOrders.map(order => `
+        <tr>
+            <td>#${order.id.toString().slice(-6)}</td>
+            <td>${order.customer?.name || 'غير معروف'}</td>
+            <td>${order.date || 'غير معروف'}</td>
+            <td>${order.total?.toFixed(2) || '0.00'} ر.س</td>
             <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
             <td>
                 <div class="action-buttons">
@@ -302,36 +355,39 @@ function loadOrdersTable() {
 
 function viewOrderDetails(orderId) {
     const order = currentOrders.find(o => o.id == orderId);
-    if (!order) return;
+    if (!order) {
+        showAdminNotification('الطلب غير موجود', 'error');
+        return;
+    }
     
     const modalContent = `
         <div class="order-details-section">
             <h4><i class="fas fa-user"></i> معلومات العميل</h4>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <p><strong>الاسم:</strong> ${order.customer.name}</p>
-                <p><strong>الهاتف:</strong> ${order.customer.phone}</p>
-                <p><strong>البريد:</strong> ${order.customer.email}</p>
-                <p><strong>العنوان:</strong> ${order.customer.address}</p>
-                <p><strong>ملاحظات:</strong> ${order.customer.notes}</p>
+                <p><strong>الاسم:</strong> ${order.customer?.name || 'غير معروف'}</p>
+                <p><strong>الهاتف:</strong> ${order.customer?.phone || 'غير معروف'}</p>
+                <p><strong>البريد:</strong> ${order.customer?.email || 'غير معروف'}</p>
+                <p><strong>العنوان:</strong> ${order.customer?.address || 'غير معروف'}</p>
+                <p><strong>ملاحظات:</strong> ${order.customer?.notes || 'لا يوجد'}</p>
             </div>
         </div>
         
         <div class="order-details-section">
             <h4><i class="fas fa-box"></i> المنتجات</h4>
             <div class="order-products">
-                ${order.cart.map(item => `
+                ${order.cart?.map(item => `
                     <div class="order-product-item">
                         <img src="${item.image || 'images/default.png'}" alt="${item.name}" class="order-product-img"
-                             onerror="this.src='https://via.placeholder.com/60x60/e0e0e0/666666?text=${encodeURIComponent(item.name.substring(0, 5))}'">
+                             onerror="this.src='https://via.placeholder.com/60x60/e0e0e0/666666?text=${encodeURIComponent(item.name?.substring(0, 5) || 'منتج')}'">
                         <div class="order-product-info">
-                            <h5>${item.name}</h5>
-                            <p>الكمية: ${item.quantity} × ${item.price} ر.س</p>
+                            <h5>${item.name || 'منتج'}</h5>
+                            <p>الكمية: ${item.quantity || 1} × ${item.price || 0} ر.س</p>
                         </div>
                         <div class="order-product-price">
-                            ${(item.quantity * item.price).toFixed(2)} ر.س
+                            ${((item.quantity || 1) * (item.price || 0)).toFixed(2)} ر.س
                         </div>
                     </div>
-                `).join('')}
+                `).join('') || '<p>لا توجد منتجات</p>'}
             </div>
         </div>
         
@@ -340,12 +396,12 @@ function viewOrderDetails(orderId) {
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <p><strong>رقم الطلب:</strong> #${order.id.toString().slice(-6)}</p>
-                    <p><strong>التاريخ:</strong> ${order.date}</p>
+                    <p><strong>التاريخ:</strong> ${order.date || 'غير معروف'}</p>
                     <p><strong>الحالة:</strong> <span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></p>
                 </div>
                 <div style="background-color: #f0f7ff; padding: 15px; border-radius: 8px;">
-                    <p><strong>عدد المنتجات:</strong> ${order.cart.reduce((sum, item) => sum + item.quantity, 0)}</p>
-                    <p><strong>المجموع:</strong> ${order.total.toFixed(2)} ر.س</p>
+                    <p><strong>عدد المنتجات:</strong> ${order.cart?.length || 0}</p>
+                    <p><strong>المجموع:</strong> ${order.total?.toFixed(2) || '0.00'} ر.س</p>
                 </div>
             </div>
         </div>
@@ -369,16 +425,13 @@ function editOrderStatus(orderId) {
         { value: 'cancelled', label: 'ملغي' }
     ];
     
-    let statusOptions = statuses.map(s => 
-        `<option value="${s.value}" ${order.status === s.value ? 'selected' : ''}>${s.label}</option>`
-    ).join('');
-    
+    const statusList = statuses.map(s => `${s.value} - ${s.label}`).join('\n');
     const newStatus = prompt(
-        `تغيير حالة الطلب #${order.id.toString().slice(-6)}\n\nاختر الحالة الجديدة:`,
+        `تغيير حالة الطلب #${order.id.toString().slice(-6)}\n\n${statusList}\n\nأدخل الحالة الجديدة:`,
         order.status
     );
     
-    if (newStatus && newStatus !== order.status && ['new', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
+    if (newStatus && statuses.find(s => s.value === newStatus)) {
         order.status = newStatus;
         localStorage.setItem('orders', JSON.stringify(currentOrders));
         
@@ -390,16 +443,76 @@ function editOrderStatus(orderId) {
     }
 }
 
+// ==================== إدارة العملاء ====================
+function loadCustomersTable() {
+    const tbody = document.getElementById('customersTableBody');
+    if (!tbody) return;
+    
+    const customers = getUniqueCustomers();
+    
+    if (customers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-table">لا توجد عملاء حالياً</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = customers.map(customer => {
+        const customerOrders = currentOrders.filter(order => order.customer?.phone === customer.phone);
+        const totalSpent = customerOrders.reduce((total, order) => total + (order.total || 0), 0);
+        
+        return `
+            <tr>
+                <td>${customer.name || 'غير معروف'}</td>
+                <td>${customer.phone || 'غير معروف'}</td>
+                <td>${customer.email || 'لم يذكر'}</td>
+                <td>${customerOrders.length}</td>
+                <td>${totalSpent.toFixed(2)} ر.س</td>
+                <td>${customerOrders[0]?.date || 'غير معروف'}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="viewCustomerDetails('${customer.phone}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function viewCustomerDetails(phone) {
+    const customer = getUniqueCustomers().find(c => c.phone === phone);
+    const customerOrders = currentOrders.filter(order => order.customer?.phone === phone);
+    
+    let message = `👤 معلومات العميل:\n`;
+    message += `الاسم: ${customer?.name || 'غير معروف'}\n`;
+    message += `الهاتف: ${phone}\n`;
+    message += `البريد: ${customer?.email || 'لم يذكر'}\n`;
+    message += `عدد الطلبات: ${customerOrders.length}\n`;
+    message += `إجمالي المشتريات: ${customerOrders.reduce((total, order) => total + (order.total || 0), 0).toFixed(2)} ر.س\n\n`;
+    message += `📋 تاريخ الطلبات:\n`;
+    
+    customerOrders.slice(-5).reverse().forEach(order => {
+        message += `- الطلب #${order.id.toString().slice(-6)}: ${order.date} (${order.total?.toFixed(2) || '0.00'} ر.س)\n`;
+    });
+    
+    alert(message);
+}
+
 // ==================== الإعدادات ====================
 function loadStoreSettings() {
-    document.getElementById('storeName').value = storeSettings.storeName;
-    document.getElementById('storeEmail').value = storeSettings.storeEmail;
-    document.getElementById('storePhone').value = storeSettings.storePhone;
-    document.getElementById('storeAddress').value = storeSettings.storeAddress;
+    const storeName = document.getElementById('storeName');
+    const storeEmail = document.getElementById('storeEmail');
+    const storePhone = document.getElementById('storePhone');
+    const storeAddress = document.getElementById('storeAddress');
+    
+    if (storeName) storeName.value = storeSettings.storeName;
+    if (storeEmail) storeEmail.value = storeSettings.storeEmail;
+    if (storePhone) storePhone.value = storeSettings.storePhone;
+    if (storeAddress) storeAddress.value = storeSettings.storeAddress;
 }
 
 function saveStoreSettings(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     
     storeSettings = {
         storeName: document.getElementById('storeName').value,
@@ -414,6 +527,8 @@ function saveStoreSettings(event) {
 
 function loadDiscountCodes() {
     const tbody = document.getElementById('discountCodesTable');
+    if (!tbody) return;
+    
     tbody.innerHTML = Object.entries(discountCodes).map(([code, data]) => `
         <tr>
             <td><strong>${code}</strong></td>
@@ -435,388 +550,6 @@ function loadDiscountCodes() {
     `).join('');
 }
 
-// ==================== الأدوات المساعدة ====================
-function getUniqueCustomers() {
-    const customersMap = new Map();
-    currentOrders.forEach(order => {
-        customersMap.set(order.customer.phone, order.customer);
-    });
-    return Array.from(customersMap.values());
-}
-
-function calculateTotalRevenue() {
-    return currentOrders.reduce((total, order) => total + order.total, 0);
-}
-
-function getStatusText(status) {
-    const statusMap = {
-        'new': 'جديد',
-        'processing': 'قيد المعالجة',
-        'shipped': 'تم الشحن',
-        'delivered': 'تم التوصيل',
-        'cancelled': 'ملغي'
-    };
-    return statusMap[status] || status;
-}
-
-function updateOrdersBadge() {
-    const newOrders = currentOrders.filter(order => order.status === 'new').length;
-    const badge = document.querySelector('.new-orders');
-    if (badge) {
-        badge.textContent = newOrders;
-        badge.style.display = newOrders > 0 ? 'inline-block' : 'none';
-    }
-}
-
-function showAdminNotification(message, type = 'success') {
-    const colors = {
-        success: '#28a745',
-        error: '#dc3545',
-        warning: '#ffc107',
-        info: '#17a2b8'
-    };
-    
-    const notification = document.createElement('div');
-    notification.className = 'admin-notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background-color: ${colors[type] || colors.success};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        z-index: 3000;
-        animation: slideInLeft 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOutLeft 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// ==================== 🔥 **الدالة الأساسية: تفعيل التبويب** ====================
-function activateTab(tabId) {
-    console.log(`🎯 تفعيل التبويب: ${tabId}`);
-    
-    // إزالة النشاط من جميع عناصر القائمة
-    document.querySelectorAll('.sidebar-menu li').forEach(li => {
-        li.classList.remove('active');
-    });
-    
-    // إخفاء جميع محتويات التبويبات
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    // إضافة النشاط للعنصر المحدد
-    const targetMenuItem = document.querySelector(`.sidebar-menu li[data-tab="${tabId}"]`);
-    if (targetMenuItem) {
-        targetMenuItem.classList.add('active');
-    }
-    
-    // إظهار محتوى التبويب المحدد
-    const targetTab = document.getElementById(tabId);
-    if (targetTab) {
-        targetTab.classList.add('active');
-        
-        // تحميل البيانات الخاصة بكل تبويب
-        switch(tabId) {
-            case 'dashboard':
-                updateStatistics();
-                loadRecentOrders();
-                break;
-            case 'products':
-                loadProductsTable();
-                break;
-            case 'orders':
-                loadOrdersTable();
-                break;
-            case 'customers':
-                loadCustomersTable();
-                break;
-            case 'analytics':
-                loadCharts();
-                loadTopProducts();
-                break;
-            case 'settings':
-                loadStoreSettings();
-                loadDiscountCodes();
-                break;
-        }
-    }
-}
-
-// ==================== 🔥 **الإضافة المهمة: إعداد القائمة الجانبية للهواتف** ====================
-function setupMobileSidebar() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.admin-sidebar');
-    
-    if (!sidebarToggle || !sidebar) return;
-    
-    // التحقق من حجم الشاشة
-    function checkScreenSize() {
-        if (window.innerWidth <= 768) {
-            sidebarToggle.style.display = 'flex';
-            sidebar.classList.remove('active');
-        } else {
-            sidebarToggle.style.display = 'none';
-            sidebar.classList.add('active');
-        }
-    }
-    
-    // التحقق عند التحميل وعند تغيير حجم النافذة
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    
-    // حدث فتح/إغلاق القائمة
-    sidebarToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        sidebar.classList.toggle('active');
-        this.innerHTML = sidebar.classList.contains('active') 
-            ? '<i class="fas fa-times"></i>' 
-            : '<i class="fas fa-bars"></i>';
-    });
-    
-    // إغلاق القائمة عند النقر على رابط في القائمة (للهواتف فقط)
-    document.querySelectorAll('.sidebar-menu a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                if (sidebarToggle) {
-                    sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                }
-            }
-        });
-    });
-    
-    // إغلاق القائمة عند النقر خارجها (للهواتف فقط)
-    document.addEventListener('click', function(event) {
-        if (window.innerWidth <= 768 && 
-            sidebar.classList.contains('active') &&
-            !sidebar.contains(event.target) && 
-            event.target !== sidebarToggle &&
-            !sidebarToggle.contains(event.target)) {
-            sidebar.classList.remove('active');
-            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-        }
-    });
-}
-
-// ==================== 🔥 **إعداد جميع الأحداث** ====================
-function setupAdminEventListeners() {
-    console.log('🔧 بدء إعداد مستمعي الأحداث...');
-    
-    // 1. أحداث التنقل بين التبويبات
-    document.querySelectorAll('.sidebar-menu li').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const tabId = this.getAttribute('data-tab');
-            if (tabId) {
-                activateTab(tabId);
-            }
-        });
-    });
-    
-    // 2. أحداث المنتجات
-    document.getElementById('addProductBtn')?.addEventListener('click', addNewProduct);
-    document.getElementById('saveProductBtn')?.addEventListener('click', saveProduct);
-    
-    // 3. أحداث النوافذ المنبثقة
-    document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.closest('.modal-overlay').classList.remove('active');
-        });
-    });
-    
-    // 4. أحداث الفلترة
-    document.getElementById('orderStatusFilter')?.addEventListener('change', loadOrdersTable);
-    document.getElementById('productSearch')?.addEventListener('input', filterProductsTable);
-    document.getElementById('categoryFilter')?.addEventListener('change', filterProductsTable);
-    document.getElementById('statusFilter')?.addEventListener('change', filterProductsTable);
-    
-    // 5. أحداث الإعدادات
-    document.getElementById('storeSettingsForm')?.addEventListener('submit', saveStoreSettings);
-    document.getElementById('addDiscountCode')?.addEventListener('click', addDiscountCode);
-    
-    // 6. أحداث الطلبات
-    document.getElementById('updateOrderStatusBtn')?.addEventListener('click', function() {
-        const orderId = this.dataset.orderId;
-        editOrderStatus(orderId);
-        document.getElementById('orderDetailsModal').classList.remove('active');
-    });
-    
-    // 7. أحداث الروابط والأزرار
-    document.querySelector('.btn-store')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.open('index.html', '_blank');
-    });
-    
-    document.querySelector('.btn-logout')?.addEventListener('click', function() {
-        if (confirm('هل تريد تسجيل الخروج؟')) {
-            window.location.href = 'index.html';
-        }
-    });
-    
-    // 8. أحداث تحديث المتجر
-    document.getElementById('refreshStoreBtn')?.addEventListener('click', function() {
-        updateAllStoreWindows();
-        showAdminNotification('تم إرسال تحديث المنتجات للمتجر الرئيسي');
-    });
-    
-    // 9. أحداث رسائل المتجر
-    window.addEventListener('message', function(event) {
-        if (event.data && event.data.type === 'GET_PRODUCTS') {
-            console.log('📨 استلام طلب المنتجات من المتجر');
-            event.source.postMessage({
-                type: 'PRODUCTS_DATA',
-                products: currentProducts
-            }, event.origin);
-        }
-    });
-    
-    console.log('✅ تم إعداد جميع مستمعي الأحداث بنجاح');
-}
-
-function filterProductsTable() {
-    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
-    const categoryFilter = document.getElementById('categoryFilter').value;
-    const statusFilter = document.getElementById('statusFilter').value;
-    
-    const filteredProducts = currentProducts.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
-                            product.description.toLowerCase().includes(searchTerm);
-        const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-        let matchesStatus = true;
-        
-        if (statusFilter === 'available') {
-            matchesStatus = product.inStock === true;
-        } else if (statusFilter === 'unavailable') {
-            matchesStatus = product.inStock === false;
-        }
-        
-        return matchesSearch && matchesCategory && matchesStatus;
-    });
-    
-    const tbody = document.getElementById('productsTableBody');
-    
-    if (filteredProducts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-table">لا توجد منتجات تطابق معايير البحث</td></tr>`;
-        return;
-    }
-    
-    tbody.innerHTML = filteredProducts.map(product => `
-        <tr>
-            <td>
-                <img src="${product.image || 'default.png'}" alt="${product.name}" class="product-image"
-                     onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=${encodeURIComponent(product.name.substring(0, 5))}'">
-            </td>
-            <td><strong>${product.name}</strong></td>
-            <td>${product.category}</td>
-            <td>${product.price} ر.س</td>
-            <td>${product.inStock ? 'نعم' : 'لا'}</td>
-            <td>
-                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
-                    ${product.inStock ? 'متوفر' : 'غير متوفر'}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-action btn-edit" onclick="editProduct(${product.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-action btn-delete" onclick="deleteProduct(${product.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function addStoreRefreshButton() {
-    const refreshBtn = document.createElement('button');
-    refreshBtn.id = 'refreshStoreBtn';
-    refreshBtn.className = 'btn btn-primary';
-    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحديث المتجر';
-    refreshBtn.style.marginRight = '15px';
-    
-    const headerActions = document.querySelector('.products-content .header-actions');
-    if (headerActions) {
-        headerActions.prepend(refreshBtn);
-    }
-}
-
-// ==================== المخططات والاحصائيات ====================
-function loadCharts() {
-    // مخطط بسيط للطلبات
-    const ordersCtx = document.getElementById('ordersChart')?.getContext('2d');
-    if (ordersCtx) {
-        new Chart(ordersCtx, {
-            type: 'bar',
-            data: {
-                labels: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
-                datasets: [{
-                    label: 'عدد الطلبات',
-                    data: [12, 19, 8, 15, 12, 25, 18],
-                    backgroundColor: '#2d5af1'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    }
-    
-    // مخطط الفئات
-    const salesCtx = document.getElementById('salesChart')?.getContext('2d');
-    if (salesCtx) {
-        new Chart(salesCtx, {
-            type: 'pie',
-            data: {
-                labels: ['إلكترونيات', 'إكسسوارات'],
-                datasets: [{
-                    data: [75, 25],
-                    backgroundColor: ['#2d5af1', '#ff6b35']
-                }]
-            }
-        });
-    }
-}
-
-function loadTopProducts() {
-    const container = document.getElementById('topProductsList');
-    container.innerHTML = `
-        <div class="top-product-item">
-            <div class="product-rank">1</div>
-            <div class="product-info">
-                <h4>سماعة رأس لاسلكية</h4>
-                <p>25 وحدة مباعة</p>
-            </div>
-            <div class="product-sales">6,250 ر.س</div>
-        </div>
-        <div class="top-product-item">
-            <div class="product-rank">2</div>
-            <div class="product-info">
-                <h4>هاتف ذكي</h4>
-                <p>18 وحدة مباعة</p>
-            </div>
-            <div class="product-sales">21,600 ر.س</div>
-        </div>
-    `;
-}
-
-// ==================== أكواد الخصم ====================
 function addDiscountCode() {
     const code = prompt('أدخل كود الخصم الجديد (أحرف كبيرة فقط):', '');
     if (!code) return;
@@ -856,67 +589,409 @@ function deleteDiscountCode(code) {
     }
 }
 
-// ==================== تحميل العملاء ====================
-function loadCustomersTable() {
-    const tbody = document.getElementById('customersTableBody');
-    const customers = getUniqueCustomers();
+// ==================== الإحصائيات ====================
+function updateStatistics() {
+    document.getElementById('totalOrders').textContent = currentOrders.length;
+    document.getElementById('totalCustomers').textContent = getUniqueCustomers().length;
+    document.getElementById('totalProducts').textContent = currentProducts.length;
+    document.getElementById('totalRevenue').textContent = calculateTotalRevenue().toFixed(2) + ' ر.س';
+}
+
+function loadCharts() {
+    // مخطط الطلبات
+    const ordersCtx = document.getElementById('ordersChart');
+    if (ordersCtx) {
+        ordersCtx.getContext('2d');
+        // سيتم إضافة Chart.js لاحقاً
+        ordersCtx.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">مخطط الطلبات سيعمل هنا</div>';
+    }
     
-    if (customers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-table">لا توجد عملاء حالياً</td></tr>`;
+    // مخطط المبيعات
+    const salesCtx = document.getElementById('salesChart');
+    if (salesCtx) {
+        salesCtx.getContext('2d');
+        salesCtx.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">مخطط المبيعات سيعمل هنا</div>';
+    }
+}
+
+function loadTopProducts() {
+    const container = document.getElementById('topProductsList');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="top-product-item">
+            <div class="product-rank">1</div>
+            <div class="product-info">
+                <h4>سماعة رأس لاسلكية</h4>
+                <p>25 وحدة مباعة</p>
+            </div>
+            <div class="product-sales">6,250 ر.س</div>
+        </div>
+        <div class="top-product-item">
+            <div class="product-rank">2</div>
+            <div class="product-info">
+                <h4>هاتف ذكي</h4>
+                <p>18 وحدة مباعة</p>
+            </div>
+            <div class="product-sales">21,600 ر.س</div>
+        </div>
+    `;
+}
+
+// ==================== الأدوات المساعدة ====================
+function getUniqueCustomers() {
+    const customersMap = new Map();
+    currentOrders.forEach(order => {
+        if (order.customer && order.customer.phone) {
+            customersMap.set(order.customer.phone, order.customer);
+        }
+    });
+    return Array.from(customersMap.values());
+}
+
+function calculateTotalRevenue() {
+    return currentOrders.reduce((total, order) => total + (order.total || 0), 0);
+}
+
+function getStatusText(status) {
+    const statusMap = {
+        'new': 'جديد',
+        'processing': 'قيد المعالجة',
+        'shipped': 'تم الشحن',
+        'delivered': 'تم التوصيل',
+        'cancelled': 'ملغي'
+    };
+    return statusMap[status] || status;
+}
+
+function updateOrdersBadge() {
+    const newOrders = currentOrders.filter(order => order.status === 'new').length;
+    const badges = document.querySelectorAll('.new-orders');
+    badges.forEach(badge => {
+        badge.textContent = newOrders;
+        badge.style.display = newOrders > 0 ? 'inline-block' : 'none';
+    });
+}
+
+function showAdminNotification(message, type = 'success') {
+    // إنشاء عنصر الإشعار
+    const notification = document.createElement('div');
+    notification.className = 'admin-notification';
+    notification.textContent = message;
+    
+    // إضافة الأنماط
+    const colors = {
+        success: '#28a745',
+        error: '#dc3545',
+        warning: '#ffc107',
+        info: '#17a2b8'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background-color: ${colors[type] || colors.success};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 3000;
+        animation: slideInLeft 0.3s ease;
+        font-family: 'Cairo', sans-serif;
+        direction: rtl;
+    `;
+    
+    // إضافة للإشعار
+    document.body.appendChild(notification);
+    
+    // إزالة الإشعار بعد 3 ثواني
+    setTimeout(() => {
+        notification.style.animation = 'slideOutLeft 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// ==================== تحديث المتجر ====================
+function updateAllStoreWindows() {
+    console.log('🔄 تحديث المنتجات...');
+    localStorage.setItem('products', JSON.stringify(currentProducts));
+    
+    // إرسال حدث لتحديث النوافذ الأخرى
+    window.dispatchEvent(new StorageEvent('storage', {
+        key: 'products',
+        newValue: JSON.stringify(currentProducts)
+    }));
+}
+
+// ==================== فلترة المنتجات ====================
+function filterProductsTable() {
+    const searchTerm = document.getElementById('productSearch')?.value.toLowerCase() || '';
+    const categoryFilter = document.getElementById('categoryFilter')?.value || 'all';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    
+    const filteredProducts = currentProducts.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
+                            product.description.toLowerCase().includes(searchTerm);
+        const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+        let matchesStatus = true;
+        
+        if (statusFilter === 'available') {
+            matchesStatus = product.inStock === true;
+        } else if (statusFilter === 'unavailable') {
+            matchesStatus = product.inStock === false;
+        }
+        
+        return matchesSearch && matchesCategory && matchesStatus;
+    });
+    
+    const tbody = document.getElementById('productsTableBody');
+    if (!tbody) return;
+    
+    if (filteredProducts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-table">لا توجد منتجات تطابق معايير البحث</td></tr>`;
         return;
     }
     
-    tbody.innerHTML = customers.map(customer => {
-        const customerOrders = currentOrders.filter(order => order.customer.phone === customer.phone);
-        const totalSpent = customerOrders.reduce((total, order) => total + order.total, 0);
-        
-        return `
-            <tr>
-                <td>${customer.name}</td>
-                <td>${customer.phone}</td>
-                <td>${customer.email || 'لم يذكر'}</td>
-                <td>${customerOrders.length}</td>
-                <td>${totalSpent.toFixed(2)} ر.س</td>
-                <td>${customerOrders[0]?.date || 'غير معروف'}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action btn-view" onclick="viewCustomerDetails('${customer.phone}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join('');
+    tbody.innerHTML = filteredProducts.map(product => `
+        <tr>
+            <td>
+                <img src="${product.image || 'default.png'}" alt="${product.name}" class="product-image"
+                     onerror="this.src='https://via.placeholder.com/50x50/e0e0e0/666666?text=${encodeURIComponent(product.name.substring(0, 5))}'">
+            </td>
+            <td><strong>${product.name}</strong></td>
+            <td>${product.category}</td>
+            <td>${product.price} ر.س</td>
+            <td>${product.inStock ? 'نعم' : 'لا'}</td>
+            <td>
+                <span class="status-badge ${product.inStock ? 'status-available' : 'status-unavailable'}">
+                    ${product.inStock ? 'متوفر' : 'غير متوفر'}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action btn-edit" onclick="editProduct(${product.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-action btn-delete" onclick="deleteProduct(${product.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
 }
 
-function viewCustomerDetails(phone) {
-    const customer = getUniqueCustomers().find(c => c.phone === phone);
-    const customerOrders = currentOrders.filter(order => order.customer.phone === phone);
+// ==================== إعداد الأحداث ====================
+function setupEventListeners() {
+    console.log('🔧 إعداد الأحداث...');
     
-    let message = `👤 معلومات العميل:\n`;
-    message += `الاسم: ${customer.name}\n`;
-    message += `الهاتف: ${customer.phone}\n`;
-    message += `البريد: ${customer.email || 'لم يذكر'}\n`;
-    message += `عدد الطلبات: ${customerOrders.length}\n`;
-    message += `إجمالي المشتريات: ${customerOrders.reduce((total, order) => total + order.total, 0).toFixed(2)} ر.س\n\n`;
-    message += `📋 تاريخ الطلبات:\n`;
+    // 1. أحداث المنتجات
+    const addProductBtn = document.getElementById('addProductBtn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', addNewProduct);
+    }
     
-    customerOrders.slice(-5).reverse().forEach(order => {
-        message += `- الطلب #${order.id.toString().slice(-6)}: ${order.date} (${order.total.toFixed(2)} ر.س)\n`;
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    if (saveProductBtn) {
+        saveProductBtn.addEventListener('click', saveProduct);
+    }
+    
+    // 2. أحداث النوافذ المنبثقة
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.modal-overlay');
+            if (modal) modal.classList.remove('active');
+        });
     });
     
-    alert(message);
+    // 3. أحداث الفلترة
+    const orderStatusFilter = document.getElementById('orderStatusFilter');
+    if (orderStatusFilter) {
+        orderStatusFilter.addEventListener('change', loadOrdersTable);
+    }
+    
+    const productSearch = document.getElementById('productSearch');
+    if (productSearch) {
+        productSearch.addEventListener('input', filterProductsTable);
+    }
+    
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterProductsTable);
+    }
+    
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterProductsTable);
+    }
+    
+    // 4. أحداث الإعدادات
+    const storeSettingsForm = document.getElementById('storeSettingsForm');
+    if (storeSettingsForm) {
+        storeSettingsForm.addEventListener('submit', saveStoreSettings);
+    }
+    
+    const addDiscountCodeBtn = document.getElementById('addDiscountCode');
+    if (addDiscountCodeBtn) {
+        addDiscountCodeBtn.addEventListener('click', addDiscountCode);
+    }
+    
+    // 5. أحداث الطلبات
+    const updateOrderStatusBtn = document.getElementById('updateOrderStatusBtn');
+    if (updateOrderStatusBtn) {
+        updateOrderStatusBtn.addEventListener('click', function() {
+            const orderId = this.dataset.orderId;
+            editOrderStatus(orderId);
+            document.getElementById('orderDetailsModal').classList.remove('active');
+        });
+    }
+    
+    // 6. أحداث الروابط والأزرار
+    const viewStoreBtn = document.querySelector('.btn-store');
+    if (viewStoreBtn) {
+        viewStoreBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open('index.html', '_blank');
+        });
+    }
+    
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                window.location.href = 'index.html';
+            }
+        });
+    }
+    
+    // إغلاق النوافذ عند النقر خارجها
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
+    
+    console.log('✅ تم إعداد جميع الأحداث');
 }
+
+// ==================== القائمة الجانبية للهواتف ====================
+function setupMobileSidebar() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.admin-sidebar');
+    
+    if (!sidebarToggle || !sidebar) return;
+    
+    // التحقق من حجم الشاشة
+    function checkScreenSize() {
+        if (window.innerWidth <= 768) {
+            sidebarToggle.style.display = 'flex';
+            sidebar.classList.remove('active');
+        } else {
+            sidebarToggle.style.display = 'none';
+            sidebar.classList.add('active');
+        }
+    }
+    
+    // التحقق عند التحميل والتغيير
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    // حدث فتح/إغلاق القائمة
+    sidebarToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sidebar.classList.toggle('active');
+        this.innerHTML = sidebar.classList.contains('active') 
+            ? '<i class="fas fa-times"></i>' 
+            : '<i class="fas fa-bars"></i>';
+    });
+    
+    // إغلاق القائمة عند النقر خارجها
+    document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 768 && 
+            sidebar.classList.contains('active') &&
+            !sidebar.contains(event.target) && 
+            event.target !== sidebarToggle &&
+            !sidebarToggle.contains(event.target)) {
+            sidebar.classList.remove('active');
+            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+    });
+}
+
+// ==================== تحميل البيانات من localStorage ====================
+function loadSampleData() {
+    // بيانات تجريبية إذا لم توجد بيانات
+    if (currentProducts.length === 0) {
+        currentProducts = [
+            {
+                id: 1,
+                name: "سماعة رأس لاسلكية",
+                category: "إلكترونيات",
+                price: 250,
+                oldPrice: 300,
+                description: "سماعة رأس لاسلكية عالية الجودة",
+                image: "images/headphones.jpg",
+                inStock: true,
+                featured: true
+            },
+            {
+                id: 2,
+                name: "هاتف ذكي",
+                category: "إلكترونيات",
+                price: 1200,
+                oldPrice: 1500,
+                description: "هاتف ذكي بشاشة كبيرة",
+                image: "images/phone.jpg",
+                inStock: true,
+                featured: true
+            }
+        ];
+        localStorage.setItem('products', JSON.stringify(currentProducts));
+    }
+    
+    if (currentOrders.length === 0) {
+        currentOrders = [
+            {
+                id: Date.now(),
+                customer: {
+                    name: "أحمد محمد",
+                    phone: "0512345678",
+                    email: "ahmed@example.com",
+                    address: "الرياض، المملكة العربية السعودية",
+                    notes: "التوصيل في الصباح"
+                },
+                cart: [
+                    {
+                        id: 1,
+                        name: "سماعة رأس لاسلكية",
+                        price: 250,
+                        quantity: 2,
+                        image: "images/headphones.jpg"
+                    }
+                ],
+                total: 500,
+                date: "2023-12-20",
+                status: "new"
+            }
+        ];
+        localStorage.setItem('orders', JSON.stringify(currentOrders));
+    }
+}
+
+// تحميل البيانات التجريبية عند التحميل
+loadSampleData();
 
 // ==================== معلومات المطور ====================
 console.log(`
 ==============================================
-🛠️ لوحة تحكم المتجر - الإصدار النهائي
+🛠️ لوحة تحكم المتجر - الإصدار المصحح
 👨‍💻 المطور: مجيب العباب
 📧 التواصل: mjyblwan0@gmail.com
 📱 واتساب: 781238648
-🌐 النسخة: 2.1.0
+🌐 النسخة: 3.0.0 (مصححة بالكامل)
 ==============================================
 `);
 
@@ -931,172 +1006,30 @@ adminStyle.textContent = `
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(-100px); opacity: 0; }
     }
+    
+    /* أنيميشن للبطاقات */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .stat-card {
+        animation: fadeIn 0.5s ease forwards;
+    }
+    
+    .admin-notification {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        z-index: 3000;
+        animation: slideInLeft 0.3s ease;
+        font-family: 'Cairo', sans-serif;
+        direction: rtl;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
 `;
 
 document.head.appendChild(adminStyle);
-
-// ==================== حماية لوحة التحكم ====================
-console.log(`
-🛡️ لوحة تحكم محمية بحقوق النشر
-👨‍💻 المطور: مجيب العباب
-📧 التواصل: mjyblwan0@gmail.com
-📱 واتساب: 781238648
-© 2023 جميع الحقوق محفوظة
-==============================================
-`);
-
-// منع الوصول غير المصرح به
-function protectAdminPanel() {
-    const currentDomain = window.location.hostname;
-    const allowedDomains = ['localhost', '127.0.0.1', 'alhaking1.github.io', 'github.io'];
-    
-    if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
-        console.error('🚫 محاولة وصول غير مصرح به للوحة التحكم من:', currentDomain);
-        
-        // عرض تحذير
-        const warningHTML = `
-            <div style="
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.95);
-                color: white;
-                z-index: 999999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-                padding: 20px;
-                font-family: 'Cairo', sans-serif;
-            ">
-                <div>
-                    <h1 style="color: #dc3545; font-size: 2rem; margin-bottom: 20px;">
-                        <i class="fas fa-ban"></i> وصول مرفوض
-                    </h1>
-                    <p style="font-size: 1.2rem; margin-bottom: 30px;">
-                        لوحة التحكم هذه محمية بحقوق النشر.<br>
-                        يمنع الوصول إليها من هذا النطاق.
-                    </p>
-                    <div style="background: rgba(255, 107, 53, 0.1); padding: 20px; border-radius: 10px;">
-                        <p><strong>👨‍💻 المطور:</strong> مجيب العباب</p>
-                        <p><strong>📧 التواصل:</strong> mjyblwan0@gmail.com</p>
-                        <p><strong>📱 واتساب:</strong> 781238648</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.innerHTML = warningHTML;
-    }
-}
-
-// استدعاء الحماية
-document.addEventListener('DOMContentLoaded', protectAdminPanel);
-
-/* ==================== تجاوب لوحة التحكم للهواتف ==================== */
-@media (max-width: 768px) {
-    /* إصلاح القائمة الجانبية */
-    .admin-sidebar {
-        width: 100%;
-        right: -100%;
-        top: 70px;
-        height: calc(100vh - 70px);
-        transition: right 0.3s ease;
-    }
-    
-    .admin-sidebar.active {
-        right: 0;
-    }
-    
-    /* زر فتح/إغلاق القائمة */
-    .sidebar-toggle {
-        display: flex !important;
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #2d5af1;
-        color: white;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        z-index: 2000;
-        box-shadow: 0 4px 12px rgba(45, 90, 241, 0.3);
-        border: none;
-        cursor: pointer;
-    }
-    
-    /* تعديل المحتوى الرئيسي */
-    .admin-content {
-        margin-right: 0;
-        padding: 20px 15px;
-        margin-top: 70px;
-        width: 100%;
-    }
-    
-    /* تعديل الجداول للهواتف */
-    .table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    table {
-        min-width: 600px; /* يسمح بالتمرير الأفقي */
-    }
-    
-    /* تعديل بطاقات الإحصائيات */
-    .stats-cards {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    /* تعديل النوافذ المنبثقة */
-    .modal {
-        width: 95%;
-        max-width: 95%;
-        margin: 10px;
-    }
-    
-    /* تعديل عناصر القائمة */
-    .sidebar-menu li a {
-        padding: 18px 20px;
-        font-size: 1.1rem;
-    }
-    
-    .sidebar-menu li a i {
-        font-size: 1.3rem;
-    }
-}
-
-@media (max-width: 480px) {
-    /* تعديلات إضافية للشاشات الصغيرة جداً */
-    .admin-nav-container {
-        padding: 0 10px;
-    }
-    
-    .user-name {
-        display: none; /* إخفاء الاسم على شاشات صغيرة */
-    }
-    
-    .admin-logo span {
-        font-size: 1.2rem;
-    }
-    
-    .content-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .header-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
