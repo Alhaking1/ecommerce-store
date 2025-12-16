@@ -1324,4 +1324,261 @@ adminStyle.textContent = `
 
 document.head.appendChild(adminStyle);
 
+// ==================== إضافة زر تغيير كلمة المرور ====================
+function addChangePasswordButton() {
+    console.log('🔧 إضافة زر تغيير كلمة المرور...');
+    
+    // 1. إضافة زر في شريط المستخدم العلوي
+    const userSection = document.querySelector('.admin-user');
+    if (userSection) {
+        const changePasswordBtn = document.createElement('button');
+        changePasswordBtn.className = 'btn-change-password';
+        changePasswordBtn.innerHTML = '<i class="fas fa-key"></i>';
+        changePasswordBtn.title = 'تغيير كلمة المرور';
+        changePasswordBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #2d5af1;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        `;
+        
+        changePasswordBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#f0f7ff';
+        });
+        
+        changePasswordBtn.addEventListener('mouseleave', function() {
+            this.style.background = 'none';
+        });
+        
+        changePasswordBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openChangePasswordModal();
+        });
+        
+        // إضافة الزر بعد الاسم أو قبله
+        const userName = document.querySelector('.user-name');
+        if (userName) {
+            userSection.insertBefore(changePasswordBtn, userName.nextSibling);
+        } else {
+            userSection.insertBefore(changePasswordBtn, userSection.firstChild);
+        }
+        
+        console.log('✅ تم إضافة زر تغيير كلمة المرور في الشريط العلوي');
+    }
+    
+    // 2. إضافة عنصر في القائمة الجانبية
+    const sidebarMenu = document.querySelector('.sidebar-menu');
+    if (sidebarMenu) {
+        const menuItem = document.createElement('li');
+        menuItem.style.borderTop = '1px solid #eee';
+        menuItem.style.marginTop = '10px';
+        menuItem.style.paddingTop = '10px';
+        
+        menuItem.innerHTML = `
+            <a href="#" onclick="openChangePasswordModal(); return false;" style="color: #ff6b35;">
+                <i class="fas fa-key" style="color: #ff6b35;"></i>
+                <span>تغيير كلمة المرور</span>
+            </a>
+        `;
+        
+        // إضافة بعد كل العناصر
+        sidebarMenu.appendChild(menuItem);
+        
+        console.log('✅ تم إضافة زر تغيير كلمة المرور في القائمة الجانبية');
+    }
+    
+    // 3. إضافة في القائمة السفلية (خيار إضافي)
+    const sidebarFooter = document.querySelector('.sidebar-footer');
+    if (sidebarFooter) {
+        const changePasswordLink = document.createElement('button');
+        changePasswordLink.className = 'btn-change-password-footer';
+        changePasswordLink.innerHTML = '<i class="fas fa-key"></i> تغيير كلمة المرور';
+        changePasswordLink.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #ff6b35;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        `;
+        
+        changePasswordLink.addEventListener('mouseenter', function() {
+            this.style.background = '#fff5f0';
+            this.style.borderColor = '#ff6b35';
+        });
+        
+        changePasswordLink.addEventListener('mouseleave', function() {
+            this.style.background = '#f8f9fa';
+            this.style.borderColor = '#ddd';
+        });
+        
+        changePasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openChangePasswordModal();
+        });
+        
+        // إضافته قبل زر تسجيل الخروج
+        const logoutBtn = document.querySelector('.btn-logout');
+        if (logoutBtn) {
+            sidebarFooter.insertBefore(changePasswordLink, logoutBtn);
+        } else {
+            sidebarFooter.appendChild(changePasswordLink);
+        }
+        
+        console.log('✅ تم إضافة زر تغيير كلمة المرور في الفوتر');
+    }
+}
+
+// ==================== دالة فتح نافذة تغيير كلمة المرور ====================
+function openChangePasswordModal() {
+    console.log('🔓 فتح نافذة تغيير كلمة المرور');
+    
+    const modalHTML = `
+        <div class="modal-overlay active" id="changePasswordModal">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="passwordError" class="error-message" style="display: none; margin-bottom: 15px;"></div>
+                    
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label for="currentPassword"><i class="fas fa-lock"></i> كلمة المرور الحالية *</label>
+                            <input type="password" id="currentPassword" placeholder="أدخل كلمة المرور الحالية" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newPassword"><i class="fas fa-lock"></i> كلمة المرور الجديدة *</label>
+                            <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة" required>
+                            <div class="password-hint">
+                                <small><i class="fas fa-info-circle"></i> يجب أن تحتوي على:</small>
+                                <ul style="margin: 5px 0 0 20px; font-size: 0.8rem;">
+                                    <li>8 أحرف على الأقل</li>
+                                    <li>حرف كبير واحد (A-Z)</li>
+                                    <li>رقم واحد على الأقل (0-9)</li>
+                                    <li>رمز خاص واحد (!@#$%^&*)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword"><i class="fas fa-lock"></i> تأكيد كلمة المرور الجديدة *</label>
+                            <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة" required>
+                        </div>
+                        
+                        <div class="password-strength" style="margin-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>قوة كلمة المرور:</span>
+                                <span id="passwordStrengthText" style="font-weight: 600;">ضعيفة</span>
+                            </div>
+                            <div style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
+                                <div id="passwordStrengthBar" style="height: 100%; width: 10%; background: #dc3545; transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary close-modal">إلغاء</button>
+                    <button class="btn btn-primary" id="savePasswordBtn">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // إزالة النافذة إذا كانت موجودة
+    const existingModal = document.getElementById('changePasswordModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // إضافة النافذة الجديدة
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // إعداد الأحداث
+    setupPasswordModalEvents();
+    
+    // إظهار النافذة مع تأثير
+    const modal = document.getElementById('changePasswordModal');
+    modal.style.animation = 'modalSlideIn 0.3s ease';
+}
+
+// ==================== إعداد أحداث نافذة كلمة المرور ====================
+function setupPasswordModalEvents() {
+    console.log('⚙️ إعداد أحداث نافذة كلمة المرور');
+    
+    // 1. التحقق من قوة كلمة المرور
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+    }
+    
+    // 2. حفظ كلمة المرور
+    const savePasswordBtn = document.getElementById('savePasswordBtn');
+    if (savePasswordBtn) {
+        savePasswordBtn.addEventListener('click', function() {
+            changeAdminPassword();
+        });
+    }
+    
+    // 3. إغلاق النافذة
+    document.querySelectorAll('#changePasswordModal .close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            console.log('❌ إغلاق نافذة تغيير كلمة المرور');
+            document.getElementById('changePasswordModal').remove();
+        });
+    });
+    
+    // 4. إغلاق عند النقر خارج النافذة
+    const modalOverlay = document.querySelector('#changePasswordModal.modal-overlay');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                console.log('❌ إغلاق نافذة تغيير كلمة المرور');
+                this.remove();
+            }
+        });
+    }
+    
+    // 5. إرسال النموذج عند الضغط على Enter
+    const form = document.getElementById('changePasswordForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            changeAdminPassword();
+        });
+    }
+}
+
+// ==================== استدعاء الدالة عند التحميل ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // انتظر قليلاً لتحميل جميع العناصر
+    setTimeout(() => {
+        addChangePasswordButton();
+        console.log('✅ تم تحميل نظام تغيير كلمة المرور');
+    }, 1000);
+});
 
