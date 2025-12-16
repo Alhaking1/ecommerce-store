@@ -1,1 +1,103 @@
 
+/* ==================== إضافات نظام الدخول ==================== */
+
+/* زر تغيير كلمة المرور */
+.btn-change-password {
+    background: none;
+    border: none;
+    color: #2d5af1;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-change-password:hover {
+    background-color: #f0f7ff !important;
+    color: #1a47c9 !important;
+}
+
+/* رسالة الخطأ */
+.error-message {
+    background-color: #fee;
+    color: #dc3545;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* المؤشر الجانبي */
+.sidebar-menu li a.warning {
+    color: #ff6b35;
+}
+
+.sidebar-menu li a.warning:hover {
+    background-color: #fff5f0;
+    color: #ff6b35;
+}
+
+/* مؤشر الأمان */
+.security-indicator {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    background: #28a745;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    box-shadow: 0 3px 10px rgba(40, 167, 69, 0.2);
+    animation: slideInRight 0.5s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* حماية الصفحة */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(45, 90, 241, 0.03);
+    z-index: -1;
+}
+
+/* طبقة الحماية */
+.protection-layer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(45deg, transparent 98%, rgba(45, 90, 241, 0.05) 100%);
+    z-index: 9999;
+}
