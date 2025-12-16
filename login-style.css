@@ -197,3 +197,61 @@ body::before {
     transform: translateY(-2px) !important;
     box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2) !important;
 }
+/* ==================== تحسين زر كلمة المرور في القائمة ==================== */
+.change-password-item {
+    border-top: 1px solid #eee !important;
+    margin-top: 5px !important;
+    padding-top: 15px !important;
+    position: relative;
+}
+
+.change-password-item a {
+    display: flex !important;
+    align-items: center !important;
+    padding: 15px 20px !important;
+    color: #ff6b35 !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.change-password-item a:hover {
+    background-color: #fff5f0 !important;
+    border-right: 3px solid #ff6b35 !important;
+}
+
+.change-password-item a i {
+    margin-left: 15px !important;
+    font-size: 1.2rem !important;
+    width: 24px !important;
+    text-align: center !important;
+    color: #ff6b35 !important;
+}
+
+.change-password-item a span {
+    flex: 1 !important;
+    color: #ff6b35 !important;
+    font-weight: 600 !important;
+}
+
+/* زر تغيير كلمة المرور في الشريط العلوي */
+.btn-change-password {
+    background: none !important;
+    border: none !important;
+    color: #2d5af1 !important;
+    font-size: 1.2rem !important;
+    cursor: pointer !important;
+    margin-left: 15px !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-change-password:hover {
+    background-color: #f0f7ff !important;
+    color: #1a47c9 !important;
+    transform: scale(1.1) !important;
+}
