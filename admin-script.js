@@ -1305,8 +1305,23 @@ adminStyle.textContent = `
         font-family: 'Cairo', sans-serif;
         direction: rtl;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
+   // ==================== إضافة مؤشر الأمان ====================
+(function addSecurityIndicator() {
+    setTimeout(() => {
+        const securityIndicator = document.createElement('div');
+        securityIndicator.className = 'security-indicator';
+        securityIndicator.innerHTML = '<i class="fas fa-shield-alt"></i> لوحة التحكم آمنة';
+        document.body.appendChild(securityIndicator);
+        
+        setTimeout(() => {
+            securityIndicator.style.opacity = '0';
+            securityIndicator.style.transform = 'translateX(-20px)';
+            setTimeout(() => securityIndicator.remove(), 500);
+        }, 3000);
+    }, 2000);
+})(); }
 `;
 
 document.head.appendChild(adminStyle);
+
 
