@@ -35,14 +35,21 @@ document.addEventListener('DOMContentLoaded', function() {
     loadStoreSettings();
     loadDiscountCodes();
     
-    // إعداد الأحداث
-    setupAdminEventListeners();
+    // 🔥 **الإضافة المهمة:** تأخير إعداد الأحداث
+    setTimeout(() => {
+        setupAdminEventListeners();
+    }, 100);
     
     // تحديث العداد
     updateOrdersBadge();
     
     // إضافة زر تحديث المتجر
     addStoreRefreshButton();
+    
+    // 🔥 **الإضافة الجديدة:** تفعيل تبويب لوحة التحكم عند التحميل
+    setTimeout(() => {
+        activateTab('dashboard');
+    }, 200);
 });
 
 // ==================== لوحة التحكم الرئيسية ====================
@@ -488,28 +495,82 @@ function showAdminNotification(message, type = 'success') {
     }, 3000);
 }
 
-function setupAdminEventListeners() {
-    // التنقل بين التبويبات
-    document.querySelectorAll('.sidebar-menu li').forEach(item => {
-        item.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            
-            document.querySelectorAll('.sidebar-menu li').forEach(li => {
-                li.classList.remove('active');
-            });
-            this.classList.add('active');
-            
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            
-            if (tabId === 'analytics') {
+// ==================== 🔥 **الإضافة الجديدة: دالة تفعيل التبويبات** ====================
+function activateTab(tabId) {
+    // إزالة النشاط من جميع عناصر القائمة
+    document.querySelectorAll('.sidebar-menu li').forEach(li => {
+        li.classList.remove('active');
+    });
+    
+    // إخفاء جميع محتويات التبويبات
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // إضافة النشاط للعنصر المحدد
+    const targetMenuItem = document.querySelector(`.sidebar-menu li[data-tab="${tabId}"]`);
+    if (targetMenuItem) {
+        targetMenuItem.classList.add('active');
+    }
+    
+    // إظهار محتوى التبويب المحدد
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.classList.add('active');
+        
+        // تحميل البيانات الخاصة بكل تبويب
+        switch(tabId) {
+            case 'dashboard':
+                updateStatistics();
+                loadRecentOrders();
+                break;
+            case 'products':
+                loadProductsTable();
+                break;
+            case 'orders':
+                loadOrdersTable();
+                break;
+            case 'customers':
+                loadCustomersTable();
+                break;
+            case 'analytics':
                 loadCharts();
                 loadTopProducts();
-            } else if (tabId === 'settings') {
+                break;
+            case 'settings':
                 loadStoreSettings();
                 loadDiscountCodes();
+                break;
+        }
+        
+        console.log(`✅ تم تفعيل تبويب: ${tabId}`);
+    }
+}
+
+function setupAdminEventListeners() {
+    console.log('🔧 بدء إعداد مستمعي الأحداث...');
+    
+    // 🔥 **الإضافة المحسنة: التنقل بين التبويبات**
+    document.querySelectorAll('.sidebar-menu li').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const tabId = this.getAttribute('data-tab');
+            console.log(`📝 تم النقر على تبويب: ${tabId}`);
+            
+            if (tabId) {
+                activateTab(tabId);
+                
+                // إغلاق القائمة الجانبية على الهواتف
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.querySelector('.admin-sidebar');
+                    const toggleBtn = document.getElementById('sidebarToggle');
+                    if (sidebar && toggleBtn) {
+                        sidebar.classList.remove('active');
+                        toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                    }
+                }
             }
         });
     });
@@ -570,6 +631,8 @@ function setupAdminEventListeners() {
             }, event.origin);
         }
     });
+    
+    console.log('✅ تم إعداد جميع مستمعي الأحداث بنجاح');
 }
 
 function filterProductsTable() {
