@@ -1071,9 +1071,227 @@ let products = [
   window.addEventListener('load', () => {
       console.log('%cمرحباً في متجر تقني! 🔧', 'color: #2d5af1; font-size: 16px; font-weight: bold;');
       console.log('%cجميع الحقوق محفوظة © 2023 مجيب العباب', 'color: #666; font-style: italic;');
+      // ==================== قسم 13: مزامنة المنتجات مع لوحة التحكم ====================
+/**
+ * حفظ المنتجات الحالية في localStorage للتتوافق مع لوحة التحكم
+ */
+function syncProductsToLocalStorage() {
+    console.log('💾 حفظ المنتجات في localStorage للتوافق مع لوحة التحكم...');
+    
+    // تحقق مما إذا كانت المنتجات في localStorage مختلفة عن المنتجات الحالية
+    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+    const currentProductsJSON = JSON.stringify(products);
+    const storedProductsJSON = JSON.stringify(storedProducts);
+    
+    if (currentProductsJSON !== storedProductsJSON) {
+        console.log('🔄 تحديث localStorage بالمنتجات الحالية...');
+        localStorage.setItem('products', JSON.stringify(products));
+        localStorage.setItem('products_last_update', Date.now());
+        console.log(`✅ تم حفظ ${products.length} منتج في localStorage`);
+    }
+}
+
+/**
+ * تحميل المنتجات من localStorage إذا كانت موجودة
+ */
+function loadProductsFromLocalStorage() {
+    console.log('📥 تحميل المنتجات من localStorage...');
+    
+    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+    
+    if (storedProducts.length > 0) {
+        console.log(`📦 تم العثور على ${storedProducts.length} منتج في localStorage`);
+        
+        // دمج المنتجات من localStorage مع المنتجات الافتراضية
+        const defaultProducts = products;
+        const mergedProducts = [];
+        
+        // استخدام معرف المنتج كمعرّف فريد للدمج
+        const allProductIds = new Set();
+        
+        // أولاً: إضافة المنتجات من localStorage
+        storedProducts.forEach(product => {
+            mergedProducts.push(product);
+            allProductIds.add(product.id);
+        });
+        
+        // ثانياً: إضافة المنتجات الافتراضية غير الموجودة في localStorage
+        defaultProducts.forEach(product => {
+            if (!allProductIds.has(product.id)) {
+                mergedProducts.push(product);
+            }
+        });
+        
+        // تحديث متغير products
+        products = mergedProducts;
+        console.log(`🔄 تم دمج المنتجات. العدد النهائي: ${products.length} منتج`);
+        
+        // إعادة عرض المنتجات المدمجة
+        displayProducts(products);
+    } else {
+        console.log('⚠️ لا توجد منتجات في localStorage، سيتم استخدام المنتجات الافتراضية');
+        // حفظ المنتجات الافتراضية في localStorage لأول مرة
+        localStorage.setItem('products', JSON.stringify(products));
+        localStorage.setItem('products_last_update', Date.now());
+    }
+}
+
+// ==================== قسم 14: تحديث المنتجات من لوحة التحكم ====================
+/**
+ * التحقق من تحديث المنتجات من لوحة التحكم
+ */
+function checkForAdminProductUpdates() {
+    const lastUpdate = localStorage.getItem('products_last_update');
+    const now = Date.now();
+    
+    if (lastUpdate) {
+        const timeDiff = (now - parseInt(lastUpdate)) / 1000; // الفرق بالثواني
+        console.log(`⏰ آخر تحديث: منذ ${Math.floor(timeDiff)} ثانية`);
+        
+        // إذا تم التحديث خلال آخر 60 ثانية
+        if (timeDiff < 60) {
+            console.log('🔄 تم تحديث المنتجات مؤخراً، جاري التحديث...');
+            refreshProductsFromAdmin();
+        }
+    }
+}
+
+/**
+ * تحديث المنتجات من localStorage (يتم استدعاؤه من لوحة التحكم)
+ */
+function refreshProductsFromAdmin() {
+    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+    console.log(`🔄 تحديث ${storedProducts.length} منتج من لوحة التحكم`);
+    
+    if (storedProducts.length > 0) {
+        // تحديث المنتجات الحالية
+        products = storedProducts;
+        
+        // إعادة عرض المنتجات المحدثة
+        displayProducts(products);
+        
+        // إظهار إشعار للمستخدم
+        showNotification('تم تحديث المنتجات بنجاح ✓');
+        
+        console.log('✅ تم تحديث المنتجات من لوحة التحكم');
+    }
+}
+
+// ==================== قسم 15: إشعار تحديث المنتجات ====================
+/**
+ * إظهار إشعار عند تحديث المنتجات في لوحة التحكم
+ */
+function showProductUpdateNotification() {
+    // إزالة أي إشعار سابق
+    const existingNotification = document.getElementById('productUpdateNotification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    const notification = document.createElement('div');
+    notification.id = 'productUpdateNotification';
+    notification.innerHTML = `
+        <div style="
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #2d5af1 0%, #1a47c9 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(45, 90, 241, 0.3);
+            z-index: 4000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideInRight 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            max-width: 400px;
+        ">
+            <i class="fas fa-sync-alt" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>تم تحديث المنتجات</strong>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+                    تم تحديث المنتجات من لوحة التحكم
+                </p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: none; border: none; color: white; cursor: pointer; margin-right: auto;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // إزالة الإشعار تلقائياً بعد 5 ثواني
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// ==================== قسم 16: التهيئة النهائية ====================
+// تعديل تهيئة المتجر لتحميل المنتجات من localStorage
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('✅ متجر تقني - تم التحميل بنجاح!');
+    console.log('👨‍💻 المطور: مجيب العباب');
+    
+    // 1. أولاً: تحميل المنتجات من localStorage
+    loadProductsFromLocalStorage();
+    
+    // 2. عرض المنتجات
+    displayProducts(products);
+    
+    // 3. تحديث السلة
+    updateCartUI();
+    
+    // 4. إعداد الأحداث
+    setupEventListeners();
+    
+    // 5. تحميل الوضع الداكن من الذاكرة
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+    }
+    
+    console.log(`📦 تم تحميل ${products.length} منتج`);
+    console.log(`🛒 عناصر السلة: ${cart.length}`);
+    console.log(`📋 عدد الطلبات السابقة: ${orders.length}`);
+    
+    // 6. التحقق من تحديثات المنتجات
+    setTimeout(checkForAdminProductUpdates, 2000);
+    
+    // 7. فحص التحديثات كل 30 ثانية
+    setInterval(checkForAdminProductUpdates, 30000);
+});
+
+// ==================== قسم 17: حماية متقدمة ====================
+// جعل الدوال متاحة عالمياً للوحة التحكم
+window.refreshProductsFromAdmin = refreshProductsFromAdmin;
+window.showProductUpdateNotification = showProductUpdateNotification;
+window.syncProductsToLocalStorage = syncProductsToLocalStorage;
+
+// حفظ المنتجات في localStorage عند إضافة منتج جديد (لوحة التحكم)
+if (typeof window !== 'undefined') {
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'products') {
+            console.log('📦 تم تحديث المنتجات في localStorage');
+            refreshProductsFromAdmin();
+            showProductUpdateNotification();
+        }
+    });
+}
+
+// حفظ المنتجات في localStorage عند مغادرة الصفحة
+window.addEventListener('beforeunload', function() {
+    syncProductsToLocalStorage();
+});
   });
 
   
+
 
 
 
