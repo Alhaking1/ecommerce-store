@@ -5,7 +5,7 @@
 ==============================================
 */
 
-// ==================== ⚡ التحقق الفوري من الدخول (أول شيء) ====================
+// ==================== ⚡ التحقق الفوري من الدخول ====================
 (function immediateLoginCheck() {
     // هذا الكود ينفذ فور تحميل الملف
     console.log('🔐 التحقق الفوري من الدخول...');
@@ -13,10 +13,8 @@
     // 1. التحقق من sessionStorage
     if (!sessionStorage.getItem('admin_logged_in')) {
         console.log('❌ غير مسجل دخول - توجيه فوري');
-        // استخدام replace لمنع العودة للصفحة
-        window.location.replace('login.html');
-        // ⚠️ تم إزالة return هنا فقط ⚠️
-        // return; // هذا السطر تم حذفه
+        window.location.href = 'login.html';
+        return;
     }
     
     // 2. التحقق من وقت الدخول
@@ -29,72 +27,32 @@
         if (hoursDiff > 4) { // 4 ساعات
             console.log('⏰ انتهت مدة الجلسة');
             sessionStorage.clear();
-            window.location.replace('login.html');
+            window.location.href = 'login.html';
             return;
         }
     }
     
     console.log('✅ تم التحقق من الدخول');
-})();
-
-// ==================== إخفاء الصفحة حتى التأكد ====================
-(function hidePageUntilVerified() {
-    // إخفاء الصفحة فوراً
-    document.body.style.display = 'none';
     
-    // إضافة شاشة تحميل
-    const loader = document.createElement('div');
-    loader.id = 'security-check-loader';
-    loader.style.cssText = `
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #2d5af1 0%, #1a47c9 100%);
-        z-index: 999999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        color: white;
-        font-family: 'Cairo', sans-serif;
-    `;
-    
-    loader.innerHTML = `
-        <i class="fas fa-shield-alt" style="font-size: 3.5rem; margin-bottom: 20px; animation: spin 1.5s linear infinite;"></i>
-        <h2 style="font-size: 1.8rem; margin-bottom: 10px;">جاري التحقق من الأمان</h2>
-        <p style="font-size: 1rem; opacity: 0.9;">لوحة تحكم المتجر - مجيب العباب</p>
-    `;
-    
-    // إضافة أنيميشن
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(loader);
-    
-    // بعد 500ms، إظهار الصفحة (بعد التأكد من التحقق)
-    setTimeout(function() {
-        // إخفاء شاشة التحميل
-        loader.style.opacity = '0';
-        loader.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            loader.remove();
-            // إظهار الصفحة
-            document.body.style.display = 'block';
-            
-            // بدء تشغيل لوحة التحكم
-            if (typeof startAdminPanel === 'function') {
+    // إخفاء شاشة التحميل الأصلية بعد تأكيد الدخول
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                
+                // إظهار المحتوى المخفي
+                document.querySelectorAll('[style*="display:none"]').forEach(el => {
+                    el.style.display = '';
+                });
+                
+                // بدء تشغيل لوحة التحكم
                 startAdminPanel();
-            }
-        }, 300);
-    }, 500);
+            }, 300);
+        }
+    }, 800);
 })();
 
 // ==================== بدء لوحة التحكم ====================
@@ -792,3 +750,34 @@ function setupMobileSidebar() {
 })();
 
 console.log('✅ لوحة التحكم جاهزة');
+
+// ==================== دوال إضافية (مفقودة في الكود الأصلي) ====================
+function loadCharts() {
+    console.log('📈 تحميل المخططات (وظيفة تجريبية)');
+}
+
+function loadTopProducts() {
+    console.log('🏆 تحميل أفضل المنتجات (وظيفة تجريبية)');
+}
+
+function viewOrder(orderId) {
+    console.log('👁️ عرض الطلب:', orderId);
+    showNotification('عرض تفاصيل الطلب (وظيفة تجريبية)');
+}
+
+function viewCustomer(phone) {
+    console.log('👤 عرض العميل:', phone);
+    showNotification('عرض تفاصيل العميل (وظيفة تجريبية)');
+}
+
+function editDiscountCode(code) {
+    console.log('✏️ تعديل كود الخصم:', code);
+    showNotification('تعديل كود الخصم (وظيفة تجريبية)');
+}
+
+function deleteDiscountCode(code) {
+    if (confirm('هل تريد حذف كود الخصم؟')) {
+        console.log('🗑️ حذف كود الخصم:', code);
+        showNotification('تم حذف كود الخصم (وظيفة تجريبية)');
+    }
+}
