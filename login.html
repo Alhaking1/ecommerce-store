@@ -326,10 +326,14 @@
             }
         `;
         document.head.appendChild(style);
+
+        // وضع تلميحات في الحقول
+document.getElementById('username').placeholder = 'admin';
+document.getElementById('password').placeholder = 'Admin@1234';
         
         // إدخال تلقائي للبيانات الافتراضية (للتجربة فقط)
-        document.getElementById('username').value = adminCredentials.username;
-        document.getElementById('password').value = adminCredentials.password;
+     //   document.getElementById('username').value = adminCredentials.username;
+    //    document.getElementById('password').value = adminCredentials.password;
         
         console.log('🔐 نظام تسجيل الدخول جاهز');
         console.log('👤 المستخدم الافتراضي:', adminCredentials.username);
