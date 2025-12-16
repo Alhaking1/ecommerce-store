@@ -40,6 +40,11 @@ document.addEventListener('DOMContentLoaded', function() {
         setupAdminEventListeners();
     }, 100);
     
+    // إعداد القائمة الجانبية للهواتف
+    setTimeout(() => {
+        setupMobileSidebar();
+    }, 150);
+    
     // تحديث العداد
     updateOrdersBadge();
     
@@ -495,8 +500,10 @@ function showAdminNotification(message, type = 'success') {
     }, 3000);
 }
 
-// ==================== 🔥 **الإضافة الجديدة: دالة تفعيل التبويبات** ====================
+// ==================== 🔥 **الدالة الأساسية: تفعيل التبويب** ====================
 function activateTab(tabId) {
+    console.log(`🎯 تفعيل التبويب: ${tabId}`);
+    
     // إزالة النشاط من جميع عناصر القائمة
     document.querySelectorAll('.sidebar-menu li').forEach(li => {
         li.classList.remove('active');
@@ -542,68 +549,111 @@ function activateTab(tabId) {
                 loadDiscountCodes();
                 break;
         }
-        
-        console.log(`✅ تم تفعيل تبويب: ${tabId}`);
     }
 }
 
+// ==================== 🔥 **الإضافة المهمة: إعداد القائمة الجانبية للهواتف** ====================
+function setupMobileSidebar() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.admin-sidebar');
+    
+    if (!sidebarToggle || !sidebar) return;
+    
+    // التحقق من حجم الشاشة
+    function checkScreenSize() {
+        if (window.innerWidth <= 768) {
+            sidebarToggle.style.display = 'flex';
+            sidebar.classList.remove('active');
+        } else {
+            sidebarToggle.style.display = 'none';
+            sidebar.classList.add('active');
+        }
+    }
+    
+    // التحقق عند التحميل وعند تغيير حجم النافذة
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    // حدث فتح/إغلاق القائمة
+    sidebarToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sidebar.classList.toggle('active');
+        this.innerHTML = sidebar.classList.contains('active') 
+            ? '<i class="fas fa-times"></i>' 
+            : '<i class="fas fa-bars"></i>';
+    });
+    
+    // إغلاق القائمة عند النقر على رابط في القائمة (للهواتف فقط)
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                if (sidebarToggle) {
+                    sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            }
+        });
+    });
+    
+    // إغلاق القائمة عند النقر خارجها (للهواتف فقط)
+    document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 768 && 
+            sidebar.classList.contains('active') &&
+            !sidebar.contains(event.target) && 
+            event.target !== sidebarToggle &&
+            !sidebarToggle.contains(event.target)) {
+            sidebar.classList.remove('active');
+            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+    });
+}
+
+// ==================== 🔥 **إعداد جميع الأحداث** ====================
 function setupAdminEventListeners() {
     console.log('🔧 بدء إعداد مستمعي الأحداث...');
     
-    // 🔥 **الإضافة المحسنة: التنقل بين التبويبات**
+    // 1. أحداث التنقل بين التبويبات
     document.querySelectorAll('.sidebar-menu li').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
             const tabId = this.getAttribute('data-tab');
-            console.log(`📝 تم النقر على تبويب: ${tabId}`);
-            
             if (tabId) {
                 activateTab(tabId);
-                
-                // إغلاق القائمة الجانبية على الهواتف
-                if (window.innerWidth <= 768) {
-                    const sidebar = document.querySelector('.admin-sidebar');
-                    const toggleBtn = document.getElementById('sidebarToggle');
-                    if (sidebar && toggleBtn) {
-                        sidebar.classList.remove('active');
-                        toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-                    }
-                }
             }
         });
     });
     
-    // المنتجات
+    // 2. أحداث المنتجات
     document.getElementById('addProductBtn')?.addEventListener('click', addNewProduct);
     document.getElementById('saveProductBtn')?.addEventListener('click', saveProduct);
     
-    // النوافذ
+    // 3. أحداث النوافذ المنبثقة
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.addEventListener('click', function() {
             this.closest('.modal-overlay').classList.remove('active');
         });
     });
     
-    // الفلترة
+    // 4. أحداث الفلترة
     document.getElementById('orderStatusFilter')?.addEventListener('change', loadOrdersTable);
     document.getElementById('productSearch')?.addEventListener('input', filterProductsTable);
     document.getElementById('categoryFilter')?.addEventListener('change', filterProductsTable);
     document.getElementById('statusFilter')?.addEventListener('change', filterProductsTable);
     
-    // الإعدادات
+    // 5. أحداث الإعدادات
     document.getElementById('storeSettingsForm')?.addEventListener('submit', saveStoreSettings);
     document.getElementById('addDiscountCode')?.addEventListener('click', addDiscountCode);
     
-    // الطلبات
+    // 6. أحداث الطلبات
     document.getElementById('updateOrderStatusBtn')?.addEventListener('click', function() {
         const orderId = this.dataset.orderId;
         editOrderStatus(orderId);
         document.getElementById('orderDetailsModal').classList.remove('active');
     });
     
-    // الروابط
+    // 7. أحداث الروابط والأزرار
     document.querySelector('.btn-store')?.addEventListener('click', function(e) {
         e.preventDefault();
         window.open('index.html', '_blank');
@@ -615,13 +665,13 @@ function setupAdminEventListeners() {
         }
     });
     
-    // تحديث المتجر
+    // 8. أحداث تحديث المتجر
     document.getElementById('refreshStoreBtn')?.addEventListener('click', function() {
         updateAllStoreWindows();
         showAdminNotification('تم إرسال تحديث المنتجات للمتجر الرئيسي');
     });
     
-    // استمع لرسائل المتجر
+    // 9. أحداث رسائل المتجر
     window.addEventListener('message', function(event) {
         if (event.data && event.data.type === 'GET_PRODUCTS') {
             console.log('📨 استلام طلب المنتجات من المتجر');
@@ -884,6 +934,7 @@ adminStyle.textContent = `
 `;
 
 document.head.appendChild(adminStyle);
+
 // ==================== حماية لوحة التحكم ====================
 console.log(`
 🛡️ لوحة تحكم محمية بحقوق النشر
@@ -1049,4 +1100,3 @@ document.addEventListener('DOMContentLoaded', protectAdminPanel);
         justify-content: center;
     }
 }
-
