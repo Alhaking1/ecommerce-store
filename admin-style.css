@@ -832,4 +832,23 @@ tbody tr:hover {
 /* أكواد الخصم */
 .discount-codes table {
     margin-bottom: 20px;
+
+}
+/* تحسينات للهواتف في ملف CSS الرئيسي */
+@media (max-width: 768px) {
+    .admin-navbar {
+        height: 60px;
+    }
+    
+    .admin-sidebar {
+        top: 60px;
+        height: calc(100vh - 60px);
+    }
+    
+    .sidebar-toggle {
+        top: 10px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+    }
 }
