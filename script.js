@@ -1290,7 +1290,23 @@ window.addEventListener('beforeunload', function() {
 });
   });
 
-  
+  // ========== حفظ المنتجات في localStorage عند تحميل المتجر ==========
+window.addEventListener('load', function() {
+    console.log('💾 حفظ المنتجات في localStorage...');
+    
+    // تحقق إذا كانت المنتجات موجودة في localStorage
+    const storedProducts = localStorage.getItem('products');
+    
+    // إذا لم تكن موجودة، احفظها
+    if (!storedProducts || storedProducts === '[]' || storedProducts === 'null') {
+        console.log('✅ حفظ المنتجات في localStorage لأول مرة');
+        localStorage.setItem('products', JSON.stringify(products));
+        localStorage.setItem('products_last_update', Date.now());
+    }
+    
+    console.log('📦 المنتجات جاهزة للوحة التحكم');
+});
+
 
 
 
